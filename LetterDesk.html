@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LetterDesk — Letter Writer</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#1d2733;--mut:#64748b;--line:#d5dde6;--pri:#1f5fbf;--pri2:#174a96;--ok:#177245;--err:#b3261e}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+header{flex:none}
+.left{height:100%;overflow-y:auto;overflow-x:hidden;padding-right:8px;min-height:0}
+.right{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.right .toolbar{flex:none}
+.right .paperwrap{flex:1;min-height:0;overflow-x:hidden;overflow-y:auto}
+.toolbar{padding:8px!important;gap:6px!important;margin-bottom:8px!important}
+.toolbar button.b{padding:7px 10px;font-size:13px}
+.seg button{padding:7px 11px!important;font-size:13px}
+header{background:#12304f;color:#fff;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:700}
+header span{color:#b8c7d9;font-size:13px}
+.app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:16px;align-items:stretch;flex:1;min-height:0}
+@media(max-width:1000px){
+  .app{grid-template-columns:1fr}
+  body{height:auto;overflow:auto;display:block}
+  .app{display:block}
+  .left{height:auto;overflow:visible;padding-right:0}
+  .right{height:auto;display:block;overflow:visible}
+  .right .paperwrap{overflow:hidden;height:auto}
+}
+.tabs{display:flex;gap:4px;margin-bottom:10px}
+.tabs button{flex:1;padding:9px 6px;border:1px solid var(--line);background:#e3e9f0;border-radius:8px 8px 0 0;cursor:pointer;font-weight:600;color:var(--mut)}
+.tabs button.on{background:var(--card);color:var(--pri);border-bottom-color:var(--card)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:#34506f}
+label{display:block;font-size:12px;font-weight:600;color:#44566b;margin:8px 0 3px}
+input[type=text],input[type=date],input[type=password],input[type=email],input[type=tel],select,textarea{width:100%;padding:8px 9px;border:1px solid #bfcad6;border-radius:7px;font:inherit;background:#fff;color:var(--ink)}
+textarea{resize:vertical;min-height:90px}
+input:focus,select:focus,textarea:focus{outline:2px solid #9cc0f5;border-color:var(--pri)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.r3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+.r4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.chk{display:flex;gap:8px;align-items:center;font-weight:500;margin:10px 0 2px}
+.chk input{width:auto}
+button.b{padding:9px 14px;border:0;border-radius:8px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+button.b:hover{background:var(--pri2)}
+button.b.alt{background:#e3e9f0;color:#24384e}
+button.b.alt:hover{background:#d3dce7}
+button.b.big{padding:12px 18px;font-size:15px;background:var(--ok)}
+button.b.big:hover{background:#0f5c37}
+button.b.red{background:#fff;color:var(--err);border:1px solid #e3b4b0}
+button.b.sm{padding:5px 9px;font-size:12px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.hint{font-size:12px;color:var(--mut);margin-top:4px}
+.msg{margin-top:8px;font-size:13px;padding:8px 10px;border-radius:7px;display:none}
+.msg.ok{display:block;background:#e5f4ec;color:var(--ok)}
+.msg.err{display:block;background:#fbe9e7;color:var(--err)}
+.msg.info{display:block;background:#e8f0fb;color:#1c4d96}
+.files{margin-top:8px}
+.file{display:flex;justify-content:space-between;align-items:center;background:#f3f6fa;border:1px solid var(--line);border-radius:7px;padding:5px 9px;margin-top:5px;font-size:13px}
+.file button{border:0;background:none;color:var(--err);cursor:pointer;font-weight:700}
+.var{border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;background:#fafcff}
+.var b{display:block;margin-bottom:4px}
+.var .t{font-size:13px;white-space:pre-wrap;max-height:180px;overflow:auto;margin-bottom:8px;color:#2b3a4a}
+.trow{display:grid;grid-template-columns:repeat(4,1fr) 28px;gap:6px;margin-top:6px}
+.trow button{border:0;background:none;color:var(--err);cursor:pointer;font-weight:700}
+.saved{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px}
+.saved small{color:var(--mut);display:block}
+.toolbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#e3e9f0;padding:8px 14px;font-weight:600;cursor:pointer;color:#44566b}
+.seg button.on{background:var(--pri);color:#fff}
+.paperwrap{background:#9aa6b2;border-radius:10px;padding:16px 12px;overflow:hidden}
+.scalebox{margin:0 auto}
+.scaled{transform-origin:top left}
+#letterPage{width:816px;min-height:1056px;padding:96px;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.35)}
+#envPage{width:912px;height:396px;position:relative;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.35);overflow:hidden}
+#envPage .ret{position:absolute;left:48px;top:42px;line-height:1.3}
+#envPage .to{position:absolute;left:392px;top:168px;line-height:1.35}
+#envPage .stamp{position:absolute;right:30px;top:24px;width:70px;height:78px;border:1px dashed #c4ccd6;color:#b2bbc6;font:10px system-ui;text-align:center;padding-top:30px}
+[contenteditable="true"]{outline:none;border-radius:3px;cursor:text}
+[contenteditable="true"]:hover{box-shadow:0 0 0 1px #9cc0f5}
+[contenteditable="true"]:focus{box-shadow:0 0 0 2px #1f5fbf;background:#f7fbff}
+.ph0:empty::before{content:"Click here and type your letter…";color:#aaa}
+.editnote{font-size:12px;color:#e9eef4;margin:0 0 10px;text-align:center}
+.note{font-size:12px;color:#e9eef4;margin-top:10px;text-align:center}
+.lt{color:#222;line-height:1.38}
+.lt .nm{font-size:1.25em;font-weight:700;color:#444}
+.lt .ln{color:#333}
+.lt .ph{color:#666}
+.lt .rule{border-bottom:2px solid #444;margin:9px 0 20px}
+.lt .rule.thin{border-bottom:1px solid #888}
+.lt .sp{height:1em}
+.lt p{margin:0 0 .95em}
+.lt table{border-collapse:collapse;width:100%;margin:0 0 1em}
+.lt th{background:#f1f1f1;text-align:left;padding:6px 8px;border-bottom:1px solid #ccc;font-weight:700;color:#444}
+.lt td{padding:6px 8px;border-bottom:1px solid #ddd;vertical-align:top}
+.lt .sig{margin-top:3.4em}
+.lt .re{font-weight:700;margin-bottom:.9em}
+@media print{
+  html,body{background:#fff;height:auto!important;overflow:visible!important;display:block!important}
+  .app{height:auto!important;display:block!important}
+  .right{height:auto!important;display:block!important;overflow:visible!important}
+  .right .paperwrap{height:auto!important;overflow:visible!important}
+  header,.left,.toolbar,.note,.editnote{display:none!important}
+  [contenteditable="true"]{box-shadow:none!important;background:none!important}
+  .app{display:block;padding:0}
+  .paperwrap{background:none;padding:0;border-radius:0}
+  .scalebox{height:auto!important;width:auto!important;margin:0!important}
+  .scaled{transform:none!important;box-shadow:none!important}
+  body.pl #letterBox{display:block!important}
+  body.pl #envBox{display:none!important}
+  body.pe #envBox{display:block!important}
+  body.pe #letterBox{display:none!important}
+  #letterPage{padding:.3in!important;width:auto!important;min-height:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #envPage .stamp{display:none}
+}
+</style>
+<style id="pageStyle"></style>
+</head>
+<body class="pl">
+<header>
+  <h1>✉ LetterDesk</h1><span>Write any letter to a person, business or company — with #10 envelope printing</span><button class="b alt" style="margin-left:auto;padding:6px 12px" onclick="toggleFull()" id="fsBtn">⛶ Full screen</button>
+</header>
+
+<div class="app">
+  <!-- LEFT PANEL -->
+  <div class="left">
+    <div class="tabs">
+      <button id="tabCompose" onclick="showTab('compose')">Compose</button>
+      <button id="tabSettings" onclick="showTab('settings')">Settings</button>
+      <button id="tabSaved" onclick="showTab('saved')">Saved</button>
+    </div>
+    <div id="paneCompose"></div>
+    <div id="paneSettings" style="display:none"></div>
+    <div id="paneSaved" style="display:none"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right">
+    <div class="toolbar">
+      <div class="seg">
+        <button id="vLetter" onclick="setView('letter')">Letter</button>
+        <button id="vEnv" onclick="setView('env')">#10 Envelope</button>
+      </div>
+      <button class="b" onclick="printIt('pl')">🖨 Print letter</button>
+      <button class="b" onclick="printIt('pe')">🖨 Print #10 envelope</button>
+      <button class="b alt" onclick="downloadDoc()">⬇ Word (.doc)</button>
+      <button class="b alt" onclick="copyText()">Copy text</button>
+      <button class="b alt" onclick="saveLetter()">💾 Save letter</button>
+    </div>
+    <div class="paperwrap">
+      <div class="editnote" id="editNote">✏ Click directly on the letter’s greeting, subject or body to edit it right here — changes sync with the form.</div>
+      <div class="scalebox" id="letterBox"><div class="scaled lt" id="letterPage"></div></div>
+      <div class="scalebox" id="envBox" style="display:none"><div class="scaled" id="envPage"></div></div>
+      <div class="note" id="envNote" style="display:none">To print the envelope: choose your printer's “#10 Envelope” paper size (or 9.5 × 4.125 in), landscape, margins “None”, scale 100%, then feed the envelope face-up as your printer requires.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const KEY_API='anthropic_api_key';
+const KEY_STATE='letterdesk_state_v1';
+const KEY_SAVED='letterdesk_saved_v1';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const STATES=[['','—'],['AL','AL'],['AK','AK'],['AZ','AZ'],['AR','AR'],['CA','CA'],['CO','CO'],['CT','CT'],['DE','DE'],['DC','DC'],['FL','FL'],['GA','GA'],['HI','HI'],['ID','ID'],['IL','IL'],['IN','IN'],['IA','IA'],['KS','KS'],['KY','KY'],['LA','LA'],['ME','ME'],['MD','MD'],['MA','MA'],['MI','MI'],['MN','MN'],['MS','MS'],['MO','MO'],['MT','MT'],['NE','NE'],['NV','NV'],['NH','NH'],['NJ','NJ'],['NM','NM'],['NY','NY'],['NC','NC'],['ND','ND'],['OH','OH'],['OK','OK'],['OR','OR'],['PA','PA'],['RI','RI'],['SC','SC'],['SD','SD'],['TN','TN'],['TX','TX'],['UT','UT'],['VT','VT'],['VA','VA'],['WA','WA'],['WV','WV'],['WI','WI'],['WY','WY'],['AS','AS (American Samoa)'],['GU','GU'],['MP','MP'],['PR','PR'],['VI','VI']];
+const RTYPES=[['man','Man (Mr.)'],['woman_married','Woman — married (Mrs.)'],['woman_single','Woman — single (Miss)'],['woman_unspecified','Woman — marital status not known (Ms.)'],['doctor','Doctor (Dr.)'],['other','Person — no title'],['business','Business / company / agency (no person)']];
+const SALMODES=[['auto','Automatic (title + last name)'],['twimc','To Whom It May Concern:'],['sir','Dear Sir or Madam:'],['team','Dear [Organization] Team,'],['custom','Custom…'],['none','No salutation']];
+const LTYPES=['General letter','Request','Inquiry','Complaint','Dispute / appeal','Demand','Thank you','Cover letter (job application)','Recommendation / reference','Resignation','Notice','Acknowledgment / verification request','Introduction','Proposal','Follow-up','Apology','Other'];
+const TONES=['Formal','Professional','Neutral','Firm','Polite and courteous','Plain and simple'];
+const LENGTHS=[['short','Short (1–2 paragraphs)'],['medium','Medium (3–4 paragraphs)'],['long','Long (5+ paragraphs)']];
+const CLOSINGS=['Sincerely,','Respectfully,','Respectfully yours,','Yours truly,','Regards,','Best regards,','Thank you,'];
+const MODELS=[['claude-sonnet-5-5','Claude Sonnet 5.5 (recommended)'],['claude-opus-5-5','Claude Opus 5.5 (best quality)'],['claude-haiku-5-5','Claude Haiku 5.5 (fastest)'],['claude-fable-5-1','Claude Fable 5.1']];
+const FONTS=[['Arial,Helvetica,sans-serif','Arial'],['"Times New Roman",Times,serif','Times New Roman']];
+const BCOLORS=[['#000000','Black'],['#444444','Dark gray'],['#12304f','Navy'],['#1f5fbf','Blue'],['#0f766e','Teal'],['#177245','Green'],['#b8860b','Gold'],['#b3261e','Red'],['#7a1f3d','Burgundy'],['#5b2a86','Purple']];
+const BSTYLES=[['solid','Solid'],['double','Double'],['dashed','Dashed'],['dotted','Dotted']];
+const BWIDTHS=[['1','Thin (1 px)'],['2','Medium (2 px)'],['3','Thick (3 px)'],['4','Extra thick (4 px)'],['6','Heavy (6 px)']];
+const FSIZES=['10','10.5','11','11.5','12','13'];
+const LHSTYLES=[['rule','Left name block with rule (like your sample)'],['center','Centered letterhead'],['plain','Plain left, no rule']];
+const ESIZES=['10','11','12','13','14'];
+const RSIZES=['7','7.5','8','8.5','9','10','11','12'];
+const RLINES=[['1.2','Tight (1.2)'],['1.35','Normal (1.35)'],['1.5','Roomy (1.5) — like your sample'],['1.7','Extra roomy (1.7)']];
+const VERSIONS=[['1','1 version'],['2','2 versions to choose from'],['3','3 versions to choose from']];
+
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
+function defaultSettings(){return{
+  model:'claude-sonnet-5-5',
+  name:'Aperaamo Tufue Levi',street:'1700 17th Ave, Apt # 611',city:'Seattle',state:'WA',zip:'98122',phone:'2533354064',email:'aperaamo.tufue.levi@gmail.com',
+  sigTitle:'',closing:'Sincerely,',font:FONTS[0][0],fontSize:'11',letterhead:'rule',showTitleInAddr:true,
+  envFont:FONTS[0][0],envSize:'12',retSize:'8',retLine:'1.5',envCaps:false,envReturn:true,
+  autoFull:true,pageBorder:false,borderColor:'#12304f',borderStyle:'solid',borderWidth:'2',envBorder:false
+}}
+function fixFonts(){
+  const ok=FONTS.map(f=>f[0]);
+  if(!ok.includes(S.settings.font))S.settings.font=FONTS[0][0];
+  if(!ok.includes(S.settings.envFont))S.settings.envFont=FONTS[0][0];
+}
+function defaultLetter(closing){return{
+  rtype:'woman_unspecified',rname:'',rorg:'',attn:'',street:'',street2:'',city:'',state:'',zip:'',
+  salMode:'auto',salCustom:'',ltype:'General letter',tone:'Professional',length:'medium',
+  date:today(),subject:'',ref:'',notes:'',body:'',closing:closing||'Sincerely,',enclosures:'',cc:'',
+  tableOn:false,tableHeaders:['','','',''],tableRows:[['','','','']]
+}}
+
+let S={settings:defaultSettings(),letter:defaultLetter(),ui:{tab:'compose',view:'letter',versions:'1'}};
+let attachments=[];   // {name,type,kind,data}
+let variants=[];
+
+function persist(){try{localStorage.setItem(KEY_STATE,JSON.stringify({settings:S.settings,letter:S.letter}))}catch(e){}}
+function loadState(){
+  try{
+    const j=JSON.parse(localStorage.getItem(KEY_STATE)||'null');
+    if(j){
+      S.settings=Object.assign(defaultSettings(),j.settings||{});
+      S.letter=Object.assign(defaultLetter(S.settings.closing),j.letter||{});
+      if(!Array.isArray(S.letter.tableHeaders))S.letter.tableHeaders=['','','',''];
+      if(!Array.isArray(S.letter.tableRows)||!S.letter.tableRows.length)S.letter.tableRows=[['','','','']];
+    } else S.letter.closing=S.settings.closing;
+  }catch(e){}
+  fixFonts();
+}
+function getSaved(){try{return JSON.parse(localStorage.getItem(KEY_SAVED)||'[]')}catch(e){return[]}}
+function putSaved(a){try{localStorage.setItem(KEY_SAVED,JSON.stringify(a))}catch(e){alert('Could not save — browser storage is full or blocked.')}}
+
+/* ============ UI BUILDERS ============ */
+function sel(path,opts,extra=''){
+  return '<select data-k="'+path+'" '+extra+'>'+opts.map(o=>{const v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return '<option value="'+esc(v)+'">'+esc(t)+'</option>'}).join('')+'</select>';
+}
+function inp(path,ph,type){return '<input type="'+(type||'text')+'" data-k="'+path+'" placeholder="'+esc(ph||'')+'">'}
+
+function buildCompose(){
+  $('paneCompose').innerHTML=`
+  <div class="card"><h3>1 · Who is it to?</h3>
+    <label>Recipient type</label>${sel('letter.rtype',RTYPES)}
+    <label>Person's full name <span style="font-weight:400">(leave blank for a business)</span></label>${inp('letter.rname','e.g. Samoana Samoamtue')}
+    <label>Business / company / agency</label>${inp('letter.rorg','e.g. American Red Cross American Samoa')}
+    <label>Attention line / job title (optional)</label>${inp('letter.attn','e.g. Attn: Accounts Department')}
+    <label>Street address or P.O. Box</label>${inp('letter.street','e.g. P.O. Box 1234')}
+    <label>Address line 2 (optional)</label>${inp('letter.street2','Suite, floor, unit…')}
+    <div class="r3"><div><label>City</label>${inp('letter.city','Pago Pago')}</div><div><label>State</label>${sel('letter.state',STATES)}</div><div><label>ZIP</label>${inp('letter.zip','96799')}</div></div>
+    <div class="r2"><div><label>Salutation</label>${sel('letter.salMode',SALMODES)}</div><div><label>Custom salutation</label>${inp('letter.salCustom','Dear …')}</div></div>
+  </div>
+
+  <div class="card"><h3>2 · About the letter</h3>
+    <div class="r2"><div><label>Letter type</label>${sel('letter.ltype',LTYPES)}</div><div><label>Date</label>${inp('letter.date','','date')}</div></div>
+    <div class="r2"><div><label>Tone</label>${sel('letter.tone',TONES)}</div><div><label>Length</label>${sel('letter.length',LENGTHS)}</div></div>
+    <label>Subject / “Re:” line (optional)</label>${inp('letter.subject','e.g. Request for donation acknowledgment')}
+    <label>Reference / case / account no. (optional, typed by you)</label>${inp('letter.ref','')}
+  </div>
+
+  <div class="card"><h3>3 · What should it say?</h3>
+    <label>Tell me what you need — facts, dates, amounts, what you want them to do</label>
+    <textarea data-k="letter.notes" rows="5" placeholder="Example: I gave $5,000 cash to the Red Cross on 11/01/2026 and need a written acknowledgment for my taxes."></textarea>
+    <div class="btns">
+      <label class="b alt" style="display:inline-block;margin:0;cursor:pointer;padding:9px 14px;border-radius:8px;background:#e3e9f0;color:#24384e;font-size:14px">📎 Attach file(s)
+        <input type="file" id="fileIn" multiple accept="image/*,.pdf,.txt,.md,.csv" style="display:none" onchange="addFiles(this.files);this.value=''">
+      </label>
+      <button class="b big" id="btnWrite" onclick="helpWrite()">✨ Help me write it</button>
+    </div>
+    <div class="files" id="fileList"></div>
+    <div class="hint">Attach a letter you received, a photo of a document, a PDF or a text file and I'll use it as context.</div>
+    <div class="r2"><div><label>Versions to generate</label>${sel('ui.versions',VERSIONS)}</div><div></div></div>
+    <div class="msg" id="aiMsg"></div>
+    <div id="variants"></div>
+  </div>
+
+  <div class="card"><h3>4 · Letter body <span style="font-weight:400;text-transform:none">— edit freely or write it yourself</span></h3>
+    <textarea data-k="letter.body" rows="12" placeholder="Type your letter here (blank line between paragraphs), or use “Help me write it” above."></textarea>
+    <label>Quick changes</label>
+    <div class="btns" style="margin-top:2px">
+      <button class="b alt sm" onclick="revise('Make it shorter and more concise.')">Shorter</button>
+      <button class="b alt sm" onclick="revise('Make it longer with more detail, using only the facts provided.')">Longer</button>
+      <button class="b alt sm" onclick="revise('Make the tone more formal.')">More formal</button>
+      <button class="b alt sm" onclick="revise('Make the tone firmer and more direct, but still professional.')">Firmer</button>
+      <button class="b alt sm" onclick="revise('Use simpler, plainer words.')">Simpler words</button>
+      <button class="b alt sm" onclick="revise('Fix grammar, spelling and punctuation only. Do not change the wording otherwise.')">Fix grammar only</button>
+    </div>
+    <label>Or tell me what to change</label>
+    <input type="text" id="revInstr" placeholder="e.g. Add that I need it within 14 days">
+    <div class="btns"><button class="b" onclick="revise($('revInstr').value)">Apply change</button></div>
+    <div class="msg" id="revMsg"></div>
+  </div>
+
+  <div class="card"><h3>5 · Optional extras</h3>
+    <label class="chk"><input type="checkbox" data-k="letter.tableOn"> Include a details table in the letter</label>
+    <div id="tableEditor"></div>
+    <div class="r2"><div><label>Closing</label>${sel('letter.closing',CLOSINGS)}</div><div></div></div>
+    <label>Enclosures (optional)</label>${inp('letter.enclosures','e.g. Copy of receipt')}
+    <div class="btns" style="margin-top:4px"><button class="b alt sm" onclick="enclFromFiles()">Use attached file names</button></div>
+    <label>cc (optional)</label>${inp('letter.cc','')}
+  </div>
+
+  <div class="btns"><button class="b alt" onclick="saveLetter()">💾 Save letter</button><button class="b red" onclick="newLetter()">New letter</button></div>
+  <div style="height:20px"></div>`;
+}
+
+function buildSettings(){
+  $('paneSettings').innerHTML=`
+  <div class="card"><h3>Claude API key</h3>
+    <label>API key</label>
+    <div style="display:flex;gap:6px"><input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off"><button class="b alt sm" onclick="toggleKey()">Show</button></div>
+    <label>AI model</label>${sel('settings.model',MODELS)}
+    <div class="btns"><button class="b" onclick="testKey()">Test key</button><button class="b red" onclick="clearKey()">Remove key</button></div>
+    <div class="hint">Saved only in this browser under the name <code>anthropic_api_key</code>. It is sent only to Anthropic when you press “Help me write”.</div>
+    <div class="msg" id="keyMsg"></div>
+  </div>
+
+  <div class="card"><h3>My information (sender / return address)</h3>
+    <label>Full name</label>${inp('settings.name','')}
+    <label>Street address / P.O. Box</label>${inp('settings.street','')}
+    <div class="r3"><div><label>City</label>${inp('settings.city','')}</div><div><label>State</label>${sel('settings.state',STATES)}</div><div><label>ZIP</label>${inp('settings.zip','')}</div></div>
+    <div class="r2"><div><label>Phone</label>${inp('settings.phone','','tel')}</div><div><label>Email</label>${inp('settings.email','','email')}</div></div>
+    <label>Title under signature (optional)</label>${inp('settings.sigTitle','e.g. Social Worker')}
+  </div>
+
+  <div class="card"><h3>Letter look</h3>
+    <div class="r2"><div><label>Letterhead style</label>${sel('settings.letterhead',LHSTYLES)}</div><div><label>Default closing</label>${sel('settings.closing',CLOSINGS)}</div></div>
+    <div class="r2"><div><label>Font</label>${sel('settings.font',FONTS)}</div><div><label>Font size (pt)</label>${sel('settings.fontSize',FSIZES)}</div></div>
+    <label class="chk"><input type="checkbox" data-k="settings.showTitleInAddr"> Show title (Mr./Mrs./Miss/Ms./Dr.) before the name in the address</label>
+    <div class="hint">Title rule: women — Mrs. if married, Miss if explicitly single, otherwise Ms.; men — always Mr. Marital status is never guessed from a name or children.</div>
+  </div>
+
+  <div class="card"><h3>Display</h3>
+    <label class="chk"><input type="checkbox" data-k="settings.autoFull"> Go full screen when I open LetterDesk (on my first click)</label>
+    <div class="hint">Browsers only allow full screen after you click or press a key, so it starts on your first click. Press Esc to leave full screen, or use the Full screen button at the top.</div>
+  </div>
+
+  <div class="card"><h3>Border &amp; color</h3>
+    <label class="chk"><input type="checkbox" data-k="settings.pageBorder"> Show a border around the letter page</label>
+    <div class="r2"><div><label>Border color</label>${sel('settings.borderColor',BCOLORS)}</div><div><label>Border style</label>${sel('settings.borderStyle',BSTYLES)}</div></div>
+    <div class="r2"><div><label>Border thickness</label>${sel('settings.borderWidth',BWIDTHS)}</div><div></div></div>
+    <label class="chk"><input type="checkbox" data-k="settings.envBorder"> Also put the border on the #10 envelope</label>
+    <div class="hint">The color is also used for the line under your name in the letterhead. Fonts are Arial and Times New Roman only. “Double” needs Thick or heavier to show.</div>
+  </div>
+
+  <div class="card"><h3>#10 envelope</h3>
+    <div class="r2"><div><label>Font</label>${sel('settings.envFont',FONTS)}</div><div><label>Recipient size (pt)</label>${sel('settings.envSize',ESIZES)}</div></div>
+    <div class="r2"><div><label>Return address size (pt)</label>${sel('settings.retSize',RSIZES)}</div><div><label>Return address line spacing</label>${sel('settings.retLine',RLINES)}</div></div>
+    <div class="hint">Default 8 pt Arial with roomy spacing, matched to the return address on your scanned Franciscan Health envelope.</div>
+    <label class="chk"><input type="checkbox" data-k="settings.envReturn"> Print my return address</label>
+    <label class="chk"><input type="checkbox" data-k="settings.envCaps"> ALL CAPS addresses (USPS style)</label>
+    <div class="hint">Size: 9½ × 4⅛ inches.</div>
+  </div>
+
+  <div class="card"><h3>Backup</h3>
+    <div class="btns" style="margin-top:0"><button class="b alt" onclick="exportData()">Export settings + saved letters</button>
+    <label class="b alt" style="display:inline-block;margin:0;cursor:pointer;padding:9px 14px;border-radius:8px;background:#e3e9f0;color:#24384e">Import<input type="file" accept=".json" style="display:none" onchange="importData(this.files[0]);this.value=''"></label></div>
+    <div class="hint">The export does not include your API key.</div>
+  </div>`;
+}
+
+function buildSaved(){
+  const a=getSaved();
+  $('paneSaved').innerHTML='<div class="card"><h3>Saved letters</h3>'+(a.length?a.map(x=>
+    '<div class="saved"><div><b>'+esc(x.title)+'</b><small>'+esc(new Date(x.ts).toLocaleString())+'</small></div><div style="display:flex;gap:6px"><button class="b sm" onclick="loadSaved(\''+x.id+'\')">Open</button><button class="b red sm" onclick="delSaved(\''+x.id+'\')">Delete</button></div></div>'
+  ).join(''):'<div class="hint">Nothing saved yet. Use “Save letter”.</div>')+'</div>';
+}
+
+function buildTable(){
+  const l=S.letter;
+  let h='';
+  if(l.tableOn){
+    h='<label>Column headings (leave unused columns blank)</label><div class="r4">'+[0,1,2,3].map(i=>inp('letter.tableHeaders.'+i,'Heading '+(i+1))).join('')+'</div><label>Rows</label>';
+    h+=l.tableRows.map((r,ri)=>'<div class="trow">'+[0,1,2,3].map(ci=>inp('letter.tableRows.'+ri+'.'+ci,'')).join('')+'<button title="Delete row" onclick="delRow('+ri+')">✕</button></div>').join('');
+    h+='<div class="btns"><button class="b alt sm" onclick="addRow()">+ Add row</button></div>';
+  }
+  $('tableEditor').innerHTML=h;
+}
+function addRow(){S.letter.tableRows.push(['','','','']);persist();buildTable();fillForm()}
+function delRow(i){S.letter.tableRows.splice(i,1);if(!S.letter.tableRows.length)S.letter.tableRows=[['','','','']];persist();buildTable();fillForm();render()}
+
+/* ============ BINDING ============ */
+function getPath(p){return p.split('.').reduce((o,k)=>o==null?o:o[k],S)}
+function setPath(p,v){const a=p.split('.'),last=a.pop();a.reduce((o,k)=>o[k],S)[last]=v}
+function fillForm(){
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const v=getPath(el.dataset.k);
+    if(el.type==='checkbox')el.checked=!!v;else el.value=(v==null?'':v);
+  });
+  const k=localStorage.getItem(KEY_API)||'';
+  if($('apiKey'))$('apiKey').value=k;
+}
+function onEdit(e){
+  const t=e.target,k=t.dataset&&t.dataset.k;
+  if(!k)return;
+  setPath(k,t.type==='checkbox'?t.checked:t.value);
+  if(k==='letter.tableOn')buildTable(),fillForm();
+  persist();render();
+}
+document.addEventListener('input',onEdit);
+document.addEventListener('input',e=>{if(e.target.id==='apiKey'){try{localStorage.setItem(KEY_API,e.target.value.trim())}catch(x){}}});
+
+function showTab(t){
+  S.ui.tab=t;
+  ['compose','settings','saved'].forEach(n=>{
+    $('pane'+n[0].toUpperCase()+n.slice(1)).style.display=(n===t)?'block':'none';
+    $('tab'+n[0].toUpperCase()+n.slice(1)).className=(n===t)?'on':'';
+  });
+  if(t==='saved')buildSaved();
+}
+function setView(v){
+  S.ui.view=v;
+  $('letterBox').style.display=v==='letter'?'block':'none';
+  $('envBox').style.display=v==='env'?'block':'none';
+  $('envNote').style.display=v==='env'?'block':'none';
+  $('editNote').style.display=v==='letter'?'block':'none';
+  $('vLetter').className=v==='letter'?'on':'';
+  $('vEnv').className=v==='env'?'on':'';
+  document.body.className=(v==='env'?'pe':'pl');
+  fitAll();
+}
+
+/* ============ LETTER LOGIC ============ */
+function titleFor(t){return{man:'Mr.',woman_married:'Mrs.',woman_single:'Miss',woman_unspecified:'Ms.',doctor:'Dr.'}[t]||''}
+function lastName(n){
+  const p=String(n||'').trim().replace(/,/g,'').split(/\s+/).filter(x=>!/^(jr\.?|sr\.?|ii|iii|iv|md|phd)$/i.test(x));
+  return p.length?p[p.length-1]:'';
+}
+function salutation(){
+  const l=S.letter,m=l.salMode;
+  if(m==='none')return '';
+  if(m==='custom')return l.salCustom;
+  if(m==='twimc')return 'To Whom It May Concern:';
+  if(m==='sir')return 'Dear Sir or Madam:';
+  if(m==='team')return 'Dear '+(l.rorg||'Team')+(l.rorg?' Team':'')+',';
+  if(l.rtype==='business'||!l.rname.trim())return 'Dear Sir or Madam:';
+  const t=titleFor(l.rtype);
+  return 'Dear '+(t?t+' '+lastName(l.rname):l.rname.trim())+',';
+}
+function fmtDate(iso){
+  if(!iso)iso=today();
+  const m=iso.split('-');if(m.length<3)return iso;
+  const N=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return N[+m[1]-1]+' '+(+m[2])+', '+m[0];
+}
+function cityLine(o){
+  const a=[o.city,o.state].filter(Boolean).join(', ');
+  return (a+(o.zip?' '+o.zip:'')).trim();
+}
+function recipientLines(){
+  const l=S.letter,s=S.settings;const out=[];
+  const t=(l.rtype!=='business'&&l.rtype!=='other'&&s.showTitleInAddr)?titleFor(l.rtype):'';
+  if(l.rname.trim())out.push((t?t+' ':'')+l.rname.trim());
+  if(l.attn.trim())out.push(l.attn.trim());
+  if(l.rorg.trim())out.push(l.rorg.trim());
+  if(l.street.trim())out.push(l.street.trim());
+  if(l.street2.trim())out.push(l.street2.trim());
+  const c=cityLine(l);if(c)out.push(c);
+  return out;
+}
+function senderLines(){
+  const s=S.settings;const out=[];
+  if(s.name)out.push(s.name);
+  if(s.street)out.push(s.street);
+  const c=cityLine(s);if(c)out.push(c);
+  return out;
+}
+function paragraphs(){return S.letter.body.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean)}
+
+function letterHTML(edit){
+  const s=S.settings,l=S.letter;
+  const sl=senderLines();
+  const contact=[s.phone,s.email].filter(Boolean).join(' | ');
+  let head='';
+  if(s.letterhead==='center'){
+    head='<div style="text-align:center"><div class="nm">'+esc(s.name)+'</div>'+sl.slice(1).map(x=>'<div class="ln">'+esc(x)+'</div>').join('')+(contact?'<div class="ph">'+esc(contact)+'</div>':'')+'</div><div class="rule thin"></div>';
+  } else {
+    head='<div><div class="nm">'+esc(s.name)+'</div>'+sl.slice(1).map(x=>'<div class="ln">'+esc(x)+'</div>').join('')+(contact?'<div class="ph">'+esc(contact)+'</div>':'')+'</div>'+(s.letterhead==='rule'?'<div class="rule"></div>':'<div class="sp"></div>');
+  }
+  const bc=s.borderColor||'#444444';
+  head=head.replace('<div class="rule thin"></div>','<div class="rule thin" style="border-bottom:1px solid '+bc+'"></div>').replace('<div class="rule"></div>','<div class="rule" style="border-bottom:2px solid '+bc+'"></div>');
+  let h=head;
+  h+='<div>'+esc(fmtDate(l.date))+'</div><div class="sp"></div>';
+  const rl=recipientLines();
+  if(rl.length)h+='<div>'+rl.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div><div class="sp"></div>';
+  const CE=' contenteditable="true" spellcheck="true"';
+  const reParts=[];
+  if(l.subject.trim())reParts.push('Re: '+(edit?'<span data-edit="subject"'+CE+'>'+esc(l.subject.trim())+'</span>':esc(l.subject.trim())));
+  if(l.ref.trim())reParts.push('Ref. No. '+(edit?'<span data-edit="ref"'+CE+'>'+esc(l.ref.trim())+'</span>':esc(l.ref.trim())));
+  if(reParts.length)h+='<div class="re">'+reParts.join(' — ')+'</div>';
+  const sal=salutation();
+  if(sal)h+='<p'+(edit?' data-edit="sal"'+CE:'')+'>'+esc(sal)+'</p>';
+  const ps=paragraphs();
+  let tbl=tableHTML();
+  if(edit&&tbl)tbl=tbl.replace('<table>','<table contenteditable="false">');
+  if(edit){
+    h+='<div data-edit="body"'+CE+'>';
+    if(!ps.length)h+='<p class="ph0"></p>'+tbl;
+    else ps.forEach((p,i)=>{h+='<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';if(i===0&&tbl)h+=tbl});
+    h+='</div>';
+  } else {
+    if(!ps.length)h+='<p style="color:#aaa">Your letter will appear here…</p>';
+    else ps.forEach((p,i)=>{h+='<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';if(i===0&&tbl)h+=tbl});
+    if(ps.length===0&&tbl)h+=tbl;
+  }
+  h+='<p>'+esc(l.closing)+'</p><div class="sig"><div>'+esc(s.name)+'</div>'+(s.sigTitle?'<div>'+esc(s.sigTitle)+'</div>':'')+'</div>';
+  if(l.enclosures.trim())h+='<div class="sp"></div><div>Enclosures: '+esc(l.enclosures)+'</div>';
+  if(l.cc.trim())h+=(l.enclosures.trim()?'':'<div class="sp"></div>')+'<div>cc: '+esc(l.cc)+'</div>';
+  return h;
+}
+function tableHTML(){
+  const l=S.letter;if(!l.tableOn)return '';
+  const cols=[0,1,2,3].filter(i=>l.tableHeaders[i].trim()||l.tableRows.some(r=>(r[i]||'').trim()));
+  const rows=l.tableRows.filter(r=>cols.some(i=>(r[i]||'').trim()));
+  if(!cols.length||!rows.length)return '';
+  return '<table><thead><tr>'+cols.map(i=>'<th>'+esc(l.tableHeaders[i])+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(i=>'<td>'+esc(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+}
+function renderLetter(){
+  const s=S.settings,el=$('letterPage');
+  el.style.fontFamily=s.font;el.style.fontSize=s.fontSize+'pt';
+  el.style.border=s.pageBorder?(s.borderWidth+'px '+s.borderStyle+' '+s.borderColor):'none';
+  el.innerHTML=letterHTML(true);
+}
+/* ---- edit directly inside the letter ---- */
+try{document.execCommand('defaultParagraphSeparator',false,'p')}catch(e){}
+function readBody(host){
+  const out=[];
+  host.childNodes.forEach(n=>{
+    if(n.nodeType===3){const t=n.textContent.replace(/ /g,' ').trim();if(t)out.push(t)}
+    else if(n.nodeType===1&&n.tagName!=='TABLE'){const t=n.innerText.replace(/ /g,' ').replace(/\n+$/,'').trim();if(t)out.push(t)}
+  });
+  return out.join('\n\n');
+}
+function oneLine(el){return el.innerText.replace(/ /g,' ').replace(/\s*\n\s*/g,' ').trim()}
+document.addEventListener('input',e=>{
+  const el=e.target.closest&&e.target.closest('[data-edit]');
+  if(!el)return;
+  const k=el.dataset.edit;
+  if(k==='body'){
+    S.letter.body=readBody(el);
+    const ta=document.querySelector('textarea[data-k="letter.body"]');if(ta)ta.value=S.letter.body;
+  } else if(k==='sal'){
+    S.letter.salMode='custom';S.letter.salCustom=oneLine(el);
+    document.querySelectorAll('[data-k="letter.salMode"]').forEach(x=>x.value='custom');
+    document.querySelectorAll('[data-k="letter.salCustom"]').forEach(x=>x.value=S.letter.salCustom);
+  } else if(k==='subject'||k==='ref'){
+    S.letter[k]=oneLine(el);
+    document.querySelectorAll('[data-k="letter.'+k+'"]').forEach(x=>x.value=S.letter[k]);
+  }
+  persist();fitAll();
+});
+document.addEventListener('paste',e=>{
+  if(!(e.target.closest&&e.target.closest('[data-edit]')))return;
+  e.preventDefault();
+  const t=(e.clipboardData||window.clipboardData).getData('text/plain');
+  document.execCommand('insertText',false,t);
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.closest&&e.target.closest('[data-edit="sal"],[data-edit="subject"],[data-edit="ref"]'))e.preventDefault();
+});
+document.addEventListener('focusout',e=>{
+  if(e.target.closest&&e.target.closest('[data-edit]')){fitAll();renderEnvelope()}
+});
+function renderEnvelope(){
+  const s=S.settings;let to=recipientLines(),ret=senderLines();
+  if(s.envCaps){to=to.map(x=>x.toUpperCase());ret=ret.map(x=>x.toUpperCase())}
+  const el=$('envPage');
+  el.style.fontFamily=s.envFont;el.style.fontSize=s.envSize+'pt';
+  el.innerHTML=(s.envBorder?'<div style="position:absolute;inset:14px;border:'+s.borderWidth+'px '+s.borderStyle+' '+s.borderColor+';pointer-events:none"></div>':'')
+    +(s.envReturn?'<div class="ret" style="font-size:'+s.retSize+'pt;line-height:'+s.retLine+'">'+ret.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div>':'')
+    +'<div class="stamp">postage</div>'
+    +'<div class="to">'+(to.length?to.map(x=>'<div>'+esc(x)+'</div>').join(''):'<div style="color:#aaa">Recipient address…</div>')+'</div>';
+}
+function fit(boxId,pageId,base){
+  const box=$(boxId),pg=$(pageId);
+  if(box.style.display==='none')return;
+  const pw=box.parentElement;
+  pg.style.transform='';
+  let sc=Math.min(1,(pw.clientWidth-24)/base);
+  pg.style.transform=sc<1?'scale('+sc+')':'';
+  box.style.width=(base*sc)+'px';
+  box.style.height=(pg.offsetHeight*sc)+'px';
+}
+function fitAll(){fit('letterBox','letterPage',816);fit('envBox','envPage',912)}
+function render(){renderLetter();renderEnvelope();fitAll()}
+window.addEventListener('resize',fitAll);
+
+/* ============ PRINT / EXPORT ============ */
+function printIt(mode){
+  setView(mode==='pe'?'env':'letter');
+  $('pageStyle').textContent=mode==='pe'?'@page{size:9.5in 4.125in;margin:0}':'@page{size:letter;margin:0.9in 1in}';
+  document.body.className=mode;
+  setTimeout(()=>window.print(),80);
+}
+function plainText(){
+  const l=S.letter,s=S.settings;const o=[];
+  senderLines().forEach(x=>o.push(x));
+  const c=[s.phone,s.email].filter(Boolean).join(' | ');if(c)o.push(c);
+  o.push('',fmtDate(l.date),'');
+  const rl=recipientLines();if(rl.length){o.push(...rl,'')}
+  const re=[];if(l.subject.trim())re.push('Re: '+l.subject.trim());if(l.ref.trim())re.push('Ref. No. '+l.ref.trim());
+  if(re.length)o.push(re.join(' — '),'');
+  const sal=salutation();if(sal)o.push(sal,'');
+  paragraphs().forEach(p=>o.push(p,''));
+  o.push(l.closing,'','',s.name);if(s.sigTitle)o.push(s.sigTitle);
+  if(l.enclosures.trim())o.push('','Enclosures: '+l.enclosures);
+  if(l.cc.trim())o.push('cc: '+l.cc);
+  return o.join('\n');
+}
+function copyText(){
+  const t=plainText();
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Letter text copied.')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Letter text copied.')}catch(e){toast('Copy failed.')}ta.remove();
+  });
+}
+function downloadDoc(){
+  const css='.nm{font-size:1.25em;font-weight:bold;color:#444}.rule{border-bottom:2px solid #444;margin:9px 0 20px}.rule.thin{border-bottom:1px solid #888}.sp{height:1em}p{margin:0 0 .95em}table{border-collapse:collapse;width:100%}th{background:#f1f1f1;text-align:left;padding:6px;border-bottom:1px solid #ccc}td{padding:6px;border-bottom:1px solid #ddd}.sig{margin-top:3em}.re{font-weight:bold}.ph{color:#666}';
+  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>Letter</title><style>@page{size:8.5in 11in;margin:1in}body{font-family:'+S.settings.font.replace(/"/g,"'")+';font-size:'+S.settings.fontSize+'pt}'+css+'</style></head><body>'+(S.settings.pageBorder?'<div style="border:'+S.settings.borderWidth+'px '+S.settings.borderStyle+' '+S.settings.borderColor+';padding:24px">':'<div>')+letterHTML()+'</div></body></html>';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff',html],{type:'application/msword'}));
+  const nm=(S.letter.rname||S.letter.rorg||'Letter').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_');
+  a.download='Letter_'+nm+'_'+S.letter.date+'.doc';
+  document.body.appendChild(a);a.click();a.remove();
+}
+function toast(m){
+  let t=$('toastEl');
+  if(!t){t=document.createElement('div');t.id='toastEl';t.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#12304f;color:#fff;padding:9px 16px;border-radius:8px;z-index:99;font-size:13px';document.body.appendChild(t)}
+  t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2200);
+}
+
+/* ============ SAVED LETTERS ============ */
+function saveLetter(){
+  const l=S.letter,a=getSaved();
+  const title=(l.rname||l.rorg||'Letter')+' — '+(l.subject||l.ltype)+' ('+fmtDate(l.date)+')';
+  a.unshift({id:'l'+Date.now(),ts:Date.now(),title,letter:JSON.parse(JSON.stringify(l))});
+  putSaved(a);toast('Letter saved.');
+  if(S.ui.tab==='saved')buildSaved();
+}
+function loadSaved(id){
+  const x=getSaved().find(v=>v.id===id);if(!x)return;
+  S.letter=Object.assign(defaultLetter(S.settings.closing),x.letter);
+  persist();buildTable();fillForm();render();showTab('compose');variants=[];$('variants').innerHTML='';
+}
+function delSaved(id){
+  if(!confirm('Delete this saved letter?'))return;
+  putSaved(getSaved().filter(v=>v.id!==id));buildSaved();
+}
+function newLetter(){
+  if(!confirm('Start a new letter? The current one will be cleared (save it first if you want to keep it).'))return;
+  S.letter=defaultLetter(S.settings.closing);attachments=[];variants=[];
+  persist();buildTable();fillForm();renderFiles();$('variants').innerHTML='';render();
+}
+function exportData(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify({settings:S.settings,saved:getSaved()},null,1)],{type:'application/json'}));
+  a.download='LetterDesk-backup.json';document.body.appendChild(a);a.click();a.remove();
+}
+function importData(f){
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const j=JSON.parse(r.result);
+    if(j.settings){S.settings=Object.assign(defaultSettings(),j.settings);fixFonts()}
+    if(Array.isArray(j.saved))putSaved(j.saved);
+    persist();fillForm();render();buildSaved();toast('Imported.');
+  }catch(e){alert('That file could not be read.')}};
+  r.readAsText(f);
+}
+
+/* ============ ATTACHMENTS ============ */
+function addFiles(list){
+  [...list].forEach(f=>{
+    const isImg=/^image\/(png|jpe?g|gif|webp)$/.test(f.type);
+    const isPdf=f.type==='application/pdf'||/\.pdf$/i.test(f.name);
+    const isTxt=/^text\//.test(f.type)||/\.(txt|md|csv)$/i.test(f.name);
+    if(!isImg&&!isPdf&&!isTxt){aiMsg('“'+f.name+'” isn’t supported. Use an image (PNG/JPG/GIF/WebP), PDF, or text file.','err');return}
+    const r=new FileReader();
+    if(isTxt&&!isPdf){
+      r.onload=()=>{attachments.push({name:f.name,kind:'text',data:String(r.result)});renderFiles()};r.readAsText(f);
+    } else {
+      r.onload=()=>{attachments.push({name:f.name,kind:isPdf?'pdf':'image',type:isPdf?'application/pdf':f.type,data:String(r.result).split(',')[1]});renderFiles()};r.readAsDataURL(f);
+    }
+  });
+}
+function renderFiles(){
+  $('fileList').innerHTML=attachments.map((a,i)=>'<div class="file"><span>📎 '+esc(a.name)+'</span><button title="Remove" onclick="rmFile('+i+')">✕</button></div>').join('');
+}
+function rmFile(i){attachments.splice(i,1);renderFiles()}
+function enclFromFiles(){
+  if(!attachments.length){toast('No files attached.');return}
+  S.letter.enclosures=attachments.map(a=>a.name).join(', ');persist();fillForm();render();
+}
+
+/* ============ AI ============ */
+function aiMsg(t,cls){const m=$('aiMsg');m.className='msg '+(cls||'info');m.textContent=t;if(!t)m.className='msg'}
+function revMsg(t,cls){const m=$('revMsg');m.className='msg '+(cls||'info');m.textContent=t;if(!t)m.className='msg'}
+
+async function callClaude(system,content,maxTokens){
+  const key=(localStorage.getItem(KEY_API)||'').trim();
+  if(!key)throw new Error('Add your API key in Settings first.');
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:S.settings.model,max_tokens:maxTokens||3000,system:system,messages:[{role:'user',content:content}]})
+  });
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw new Error((j.error&&j.error.message)||('Request failed (HTTP '+r.status+')'));
+  return (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+function parseJSON(t){
+  const a=t.indexOf('{'),b=t.lastIndexOf('}');
+  if(a<0||b<0)throw new Error('The AI reply was not in the expected format. Try again.');
+  return JSON.parse(t.slice(a,b+1));
+}
+function systemPrompt(n){
+  return 'You are a careful professional letter-writing assistant. Write ONLY the body paragraphs of a letter from the sender\'s instructions and any attached material.\n'
+  +'Rules:\n'
+  +'- Use only facts the sender gave you or that appear in the attachments. Do not invent names, dates, amounts, deadlines, laws, or promises. If something essential is missing, put a short [bracketed placeholder].\n'
+  +'- Never use affectionate, sentimental, or emotional wording (no "with love", "thinking of you", hearts, etc.) unless the sender explicitly asks for it.\n'
+  +'- No filler or boilerplate beyond what the purpose requires.\n'
+  +'- Do NOT include the sender or recipient address, date, salutation, closing, or signature. Do not repeat details that will appear in a separate details table; refer to it instead.\n'
+  +'- Plain text only. No markdown, bullets, or asterisks. Separate paragraphs in the JSON array.\n'
+  +'- Write in first person as the sender.\n'
+  +(n>1
+   ? '- Give '+n+' clearly different versions (for example different structure or emphasis).\nOutput ONLY valid JSON: {"versions":[{"label":"short label","subject":"suggested subject line or empty string","paragraphs":["..."]}]}'
+   : 'Output ONLY valid JSON: {"subject":"suggested subject line or empty string","paragraphs":["..."]}');
+}
+function lengthText(){return{short:'Short: 1–2 paragraphs, under about 120 words.',medium:'Medium: 3–4 paragraphs, about 150–250 words.',long:'Long: 5 or more paragraphs, about 300–450 words.'}[S.letter.length]}
+function context(){
+  const l=S.letter,s=S.settings;
+  let c='SENDER: '+s.name+(senderLines().slice(1).length?' — '+senderLines().slice(1).join(', '):'')+(s.sigTitle?' ('+s.sigTitle+')':'')+'\n';
+  const rl=recipientLines();
+  c+='RECIPIENT: '+(rl.length?rl.join(' | '):'(not specified)')+'\n';
+  c+='RECIPIENT TYPE: '+(RTYPES.find(r=>r[0]===l.rtype)||[0,''])[1]+'\n';
+  c+='SALUTATION THAT WILL BE USED: '+(salutation()||'(none)')+'\n';
+  c+='LETTER TYPE: '+l.ltype+'\nTONE: '+l.tone+'\nLENGTH: '+lengthText()+'\nDATE: '+fmtDate(l.date)+'\n';
+  if(l.subject.trim())c+='SUBJECT LINE (already printed): '+l.subject+'\n';
+  if(l.ref.trim())c+='REFERENCE NUMBER (already printed): '+l.ref+'\n';
+  const t=tableHTML();
+  if(t){
+    c+='DETAILS TABLE that will be printed after the first paragraph:\n';
+    const cols=[0,1,2,3].filter(i=>l.tableHeaders[i].trim()||l.tableRows.some(r=>(r[i]||'').trim()));
+    c+=cols.map(i=>l.tableHeaders[i]).join(' | ')+'\n';
+    l.tableRows.forEach(r=>{if(cols.some(i=>(r[i]||'').trim()))c+=cols.map(i=>r[i]||'').join(' | ')+'\n'});
+  }
+  c+='\nSENDER\'S INSTRUCTIONS / DETAILS:\n'+(l.notes.trim()||'(see attached material)');
+  return c;
+}
+function attachmentBlocks(){
+  const out=[];
+  attachments.forEach(a=>{
+    if(a.kind==='image')out.push({type:'image',source:{type:'base64',media_type:a.type,data:a.data}});
+    else if(a.kind==='pdf')out.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:a.data}});
+    else out.push({type:'text',text:'ATTACHED FILE "'+a.name+'":\n'+a.data.slice(0,60000)});
+  });
+  return out;
+}
+function setBusy(b,label){
+  ['btnWrite'].forEach(id=>{const e=$(id);if(e){e.disabled=b;e.textContent=b?label:'✨ Help me write it'}});
+  document.querySelectorAll('.btns .sm').forEach(x=>x.disabled=b);
+}
+
+async function helpWrite(){
+  const l=S.letter,n=Number(S.ui.versions)||1;
+  if(!l.notes.trim()&&!attachments.length){aiMsg('Tell me what the letter should say, or attach a file first.','err');return}
+  aiMsg('');setBusy(true,'Writing…');$('variants').innerHTML='';variants=[];
+  try{
+    const content=attachmentBlocks().concat([{type:'text',text:context()+'\n\nTASK: Write the letter body.'}]);
+    const j=parseJSON(await callClaude(systemPrompt(n),content,3500));
+    if(n>1&&Array.isArray(j.versions)&&j.versions.length){
+      variants=j.versions;showVariants();aiMsg('Pick the version you want — you can still edit it afterward.','ok');
+    } else {
+      applyVersion(j);aiMsg('Done. Edit the body below, or use the quick changes.','ok');
+    }
+  }catch(e){aiMsg(e.message||String(e),'err')}
+  setBusy(false);
+}
+function applyVersion(v){
+  const ps=(v.paragraphs||[]).map(String);
+  if(!ps.length)throw new Error('The AI returned an empty letter. Try again.');
+  S.letter.body=ps.join('\n\n');
+  if(v.subject&&!S.letter.subject.trim())S.letter.subject=v.subject;
+  persist();fillForm();render();
+}
+function showVariants(){
+  $('variants').innerHTML=variants.map((v,i)=>'<div class="var"><b>'+esc(v.label||('Version '+(i+1)))+'</b><div class="t">'+esc((v.paragraphs||[]).join('\n\n'))+'</div><button class="b sm" onclick="useVariant('+i+')">Use this version</button></div>').join('');
+}
+function useVariant(i){try{applyVersion(variants[i]);toast('Version applied.')}catch(e){aiMsg(e.message,'err')}}
+
+async function revise(instr){
+  instr=(instr||'').trim();
+  if(!instr){revMsg('Tell me what to change.','err');return}
+  if(!S.letter.body.trim()){revMsg('Write or generate a letter body first.','err');return}
+  revMsg('Working…','info');setBusy(true,'Writing…');
+  try{
+    const content=[{type:'text',text:context()+'\n\nCURRENT LETTER BODY:\n'+S.letter.body+'\n\nTASK: Revise the current body as follows: '+instr+'\nKeep every fact accurate; add nothing the sender did not provide. Return the full revised body.'}];
+    const j=parseJSON(await callClaude(systemPrompt(1),content,3500));
+    const ps=(j.paragraphs||[]).map(String);
+    if(!ps.length)throw new Error('Empty reply. Try again.');
+    S.letter.body=ps.join('\n\n');persist();fillForm();render();revMsg('Updated.','ok');
+  }catch(e){revMsg(e.message||String(e),'err')}
+  setBusy(false);
+}
+
+/* ============ SETTINGS: KEY ============ */
+function toggleKey(){const k=$('apiKey');k.type=k.type==='password'?'text':'password'}
+function keyMsg(t,c){const m=$('keyMsg');m.className='msg '+c;m.textContent=t}
+async function testKey(){
+  keyMsg('Testing…','info');
+  try{await callClaude('Reply with the single word OK.',[{type:'text',text:'Test'}],20);keyMsg('Key works.','ok')}
+  catch(e){keyMsg(e.message||String(e),'err')}
+}
+function clearKey(){if(!confirm('Remove the saved API key from this browser?'))return;localStorage.removeItem(KEY_API);$('apiKey').value='';keyMsg('Key removed.','ok')}
+
+/* ============ FULL SCREEN ============ */
+function goFull(){const d=document.documentElement;try{if(!document.fullscreenElement&&d.requestFullscreen)d.requestFullscreen().catch(()=>{})}catch(e){}}
+function toggleFull(){try{if(document.fullscreenElement)document.exitFullscreen();else goFull()}catch(e){}}
+let fsTried=false;
+function firstGesture(){if(fsTried)return;fsTried=true;if(S.settings.autoFull)goFull()}
+document.addEventListener('pointerdown',firstGesture,{capture:true});
+document.addEventListener('keydown',firstGesture,{capture:true});
+document.addEventListener('fullscreenchange',()=>{const b=$('fsBtn');if(b)b.textContent=document.fullscreenElement?'✕ Exit full screen':'⛶ Full screen';setTimeout(fitAll,100)});
+
+/* ============ INIT ============ */
+loadState();
+buildCompose();buildSettings();buildSaved();buildTable();fillForm();
+showTab('compose');setView('letter');render();
+if(!localStorage.getItem(KEY_API))aiMsg('Add your API key in Settings to use “Help me write it”. You can also write the letter yourself in section 4.','info');
+</script>
+</body>
+</html>
