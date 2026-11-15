@@ -79,6 +79,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #envPage{width:912px;height:396px;position:relative;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.35);overflow:hidden}
 #envPage .ret{position:absolute;left:48px;top:42px;line-height:1.3}
 #envPage .to{position:absolute;left:392px;top:168px;line-height:1.35}
+#rtsPage{width:912px;height:396px;position:relative;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.35);overflow:hidden}
+#rtsPage .rts{position:absolute;color:#d00000;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:uppercase;text-align:center;line-height:1.25;letter-spacing:.02em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#rtsPage .rts.box{border:3px solid #d00000;padding:10px 18px}
+#rtsPage .rts div+div{margin-top:6px}
+#rtsPage .ghost{position:absolute;color:#c9d1db;font:11px system-ui}
 #envPage .stamp{position:absolute;right:30px;top:24px;width:70px;height:78px;border:1px dashed #c4ccd6;color:#b2bbc6;font:10px system-ui;text-align:center;padding-top:30px}
 [contenteditable="true"]{outline:none;border-radius:3px;cursor:text}
 [contenteditable="true"]:hover{box-shadow:0 0 0 1px #9cc0f5}
@@ -114,6 +119,10 @@ button:disabled{opacity:.55;cursor:not-allowed}
   body.pl #envBox{display:none!important}
   body.pe #envBox{display:block!important}
   body.pe #letterBox{display:none!important}
+  body.pl #rtsBox,body.pe #rtsBox{display:none!important}
+  body.pr #rtsBox{display:block!important}
+  body.pr #letterBox,body.pr #envBox{display:none!important}
+  #rtsPage .ghost{display:none}
   #letterPage{padding:.3in!important;width:auto!important;min-height:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #envPage .stamp{display:none}
 }
@@ -144,9 +153,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <div class="seg">
         <button id="vLetter" onclick="setView('letter')">Letter</button>
         <button id="vEnv" onclick="setView('env')">#10 Envelope</button>
+        <button id="vRts" onclick="setView('rts')">↩ Return to Sender</button>
       </div>
       <button class="b" onclick="printIt('pl')">🖨 Print letter</button>
       <button class="b" onclick="printIt('pe')">🖨 Print #10 envelope</button>
+      <button class="b" id="rtsPrintBtn" style="display:none;background:#b00000" onclick="printIt('pr')">🖨 Print Return to Sender</button>
       <button class="b alt" onclick="downloadDoc()">⬇ Word (.doc)</button>
       <button class="b alt" id="boldBtn" title="Bold (Ctrl+B): select words in the letter, then press" onmousedown="event.preventDefault()" onclick="boldIt()"><b>B</b> Bold</button>
       <button class="b alt" onclick="copyText()">Copy text</button>
@@ -156,6 +167,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <div class="editnote" id="editNote">✏ Click directly on the letter’s greeting, subject or body to edit it right here — changes sync with the form. To bold: select words in the letter body, then press <b>B Bold</b> (or Ctrl+B).</div>
       <div class="scalebox" id="letterBox"><div class="scaled lt" id="letterPage"></div></div>
       <div class="scalebox" id="envBox" style="display:none"><div class="scaled" id="envPage"></div></div>
+      <div class="scalebox" id="rtsBox" style="display:none"><div class="scaled" id="rtsPage"></div></div>
+      <div class="note" id="rtsNote" style="display:none">For mail that came to you by mistake: put the wrong envelope in your printer the same way as a #10 envelope (paper size “#10 Envelope” or 9.5 × 4.125 in, margins “None”, scale 100%) and print. Do not open the envelope. Also cross out the barcode along the bottom with a pen, then put it back in the mail. The bottom strip of the envelope is left clear so the post office can add its return barcode. Change the position and size in Settings → Return to Sender.</div>
       <div class="note" id="envNote" style="display:none">To print the envelope: choose your printer's “#10 Envelope” paper size (or 9.5 × 4.125 in), landscape, margins “None”, scale 100%, then feed the envelope face-up as your printer requires.</div>
     </div>
   </div>
@@ -192,6 +205,8 @@ const OTYPES=[['house','U.S. Representative'],['delegate','U.S. House Delegate (
 const OT={house:['U.S. House of Representatives','Representative'],delegate:['U.S. House of Representatives','Delegate'],senate:['United States Senate','Senator'],president:['The White House','President'],vp:['Office of the Vice President','Vice President'],cabinet:['','Secretary'],governor:['Office of the Governor','Governor'],ltgov:['Office of the Lieutenant Governor','Lieutenant Governor'],state_senate:['','Senator'],state_house:['','Representative'],mayor:['Office of the Mayor','Mayor'],council:['','Councilmember'],other:['','']};
 const CONGRESS_TYPES=['house','delegate','senate'];
 const MEMBER0=()=>({otype:'delegate',org:'U.S. House of Representatives',name:"Uifa'atali Amata Coleman Radewagen",sal:'Congresswoman Amata',dcStreet:'2001 Rayburn House Office Building',dcCity:'Washington',dcState:'DC',dcZip:'20515',distStreet:'1 Fagatogo Square, P.O. Box 5859',distCity:'Pago Pago',distState:'AS',distZip:'96799'});
+const RTSPOS=[['lowerleft','Lower left (recommended — clear of the addresses)'],['center','Middle (over the wrong address)'],['upper','Upper middle (between return address and stamp)'],['lowerright','Lower right']];
+const RTSSIZES=[['14','14 pt'],['16','16 pt'],['18','18 pt'],['20','20 pt'],['24','24 pt'],['28','28 pt']];
 const VERSIONS=[['1','1 version'],['2','2 versions to choose from'],['3','3 versions to choose from']];
 
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -201,7 +216,7 @@ function defaultSettings(){return{
   name:'Aperaamo Tufue Levi',street:'1700 17th Ave, Apt # 611',city:'Seattle',state:'WA',zip:'98122',phone:'2533354064',email:'aperaamo.tufue.levi@gmail.com',
   sigTitle:'',closing:'Sincerely,',font:FONTS[0][0],fontSize:'11',letterhead:'rule',showTitleInAddr:true,
   envFont:FONTS[0][0],envSize:'12',retSize:'8',retLine:'1.5',envCaps:false,envReturn:true,
-  autoFull:true,members:[MEMBER0()],pageBorder:false,borderColor:'#12304f',borderStyle:'solid',borderWidth:'2',envBorder:false
+  autoFull:true,members:[MEMBER0()],rtsL1:'NOT AT THIS ADDRESS',rtsL2:'RETURN TO SENDER',rtsL3:'RECIPIENT DOES NOT LIVE AT THIS ADDRESS.',rtsPos:'lowerleft',rtsSize:'16',rtsBox:true,pageBorder:false,borderColor:'#12304f',borderStyle:'solid',borderWidth:'2',envBorder:false
 }}
 function fixFonts(){
   const ok=FONTS.map(f=>f[0]);
@@ -362,6 +377,15 @@ function buildSettings(){
     <div class="hint">Size: 9½ × 4⅛ inches.</div>
   </div>
 
+  <div class="card"><h3>↩ Return to Sender (wrong mail)</h3>
+    <div class="hint" style="margin-top:0">Printed in bold red, all upper case, on a #10 envelope that came to you by mistake. Open it with the “↩ Return to Sender” button above the letter.</div>
+    <label>Line 1</label>${inp('settings.rtsL1','NOT AT THIS ADDRESS')}
+    <label>Line 2</label>${inp('settings.rtsL2','RETURN TO SENDER')}
+    <label>Line 3</label>${inp('settings.rtsL3','RECIPIENT DOES NOT LIVE AT THIS ADDRESS.')}
+    <div class="r2"><div><label>Position on the envelope</label>${sel('settings.rtsPos',RTSPOS)}</div><div><label>Text size</label>${sel('settings.rtsSize',RTSSIZES)}</div></div>
+    <label class="chk"><input type="checkbox" data-k="settings.rtsBox"> Red box around the words</label>
+  </div>
+
   <div class="card"><h3>Backup</h3>
     <div class="btns" style="margin-top:0"><button class="b alt" onclick="exportData()">Export settings + saved letters</button>
     <label class="b alt" style="display:inline-block;margin:0;cursor:pointer;padding:9px 14px;border-radius:8px;background:#e3e9f0;color:#24384e">Import<input type="file" accept=".json" style="display:none" onchange="importData(this.files[0]);this.value=''"></label></div>
@@ -465,10 +489,11 @@ function setView(v){
   $('letterBox').style.display=v==='letter'?'block':'none';
   $('envBox').style.display=v==='env'?'block':'none';
   $('envNote').style.display=v==='env'?'block':'none';
+  $('rtsBox').style.display=v==='rts'?'block':'none';$('rtsNote').style.display=v==='rts'?'block':'none';$('rtsPrintBtn').style.display=v==='rts'?'':'none';$('vRts').className=v==='rts'?'on':'';
   $('editNote').style.display=v==='letter'?'block':'none';
   $('vLetter').className=v==='letter'?'on':'';
   $('vEnv').className=v==='env'?'on':'';
-  document.body.className=(v==='env'?'pe':'pl');
+  document.body.className=(v==='env'?'pe':v==='rts'?'pr':'pl');
   fitAll();
 }
 
@@ -671,14 +696,21 @@ function fit(boxId,pageId,base){
   box.style.width=(base*sc)+'px';
   box.style.height=(pg.offsetHeight*sc)+'px';
 }
-function fitAll(){fit('letterBox','letterPage',816);fit('envBox','envPage',912)}
-function render(){renderLetter();renderEnvelope();fitAll()}
+function fitAll(){fit('letterBox','letterPage',816);fit('envBox','envPage',912);fit('rtsBox','rtsPage',912)}
+function renderRts(){
+  const s=S.settings,el=$('rtsPage');if(!el)return;
+  const lines=[s.rtsL1,s.rtsL2,s.rtsL3].map(x=>String(x||'').trim()).filter(Boolean);
+  const pos={lowerleft:'left:40px;bottom:66px',center:'left:50%;top:50%;transform:translate(-50%,-50%)',upper:'left:50%;top:40px;transform:translateX(-50%)',lowerright:'right:40px;bottom:66px'}[s.rtsPos]||'left:40px;bottom:66px';
+  el.innerHTML='<div class="ghost" style="left:48px;top:42px">sender’s return address</div><div class="ghost" style="right:30px;top:24px">postage</div><div class="ghost" style="left:392px;top:168px">wrong address</div>'
+    +'<div class="rts'+(s.rtsBox?' box':'')+'" style="'+pos+';font-size:'+(s.rtsSize||'20')+'pt">'+lines.map(x=>'<div>'+esc(x.toUpperCase())+'</div>').join('')+'</div>';
+}
+function render(){renderLetter();renderEnvelope();renderRts();fitAll()}
 window.addEventListener('resize',fitAll);
 
 /* ============ PRINT / EXPORT ============ */
 function printIt(mode){
-  setView(mode==='pe'?'env':'letter');
-  $('pageStyle').textContent=mode==='pe'?'@page{size:9.5in 4.125in;margin:0}':'@page{size:letter;margin:0.9in 1in}';
+  setView(mode==='pe'?'env':mode==='pr'?'rts':'letter');
+  $('pageStyle').textContent=(mode==='pe'||mode==='pr')?'@page{size:9.5in 4.125in;margin:0}':'@page{size:letter;margin:0.9in 1in}';
   document.body.className=mode;
   setTimeout(()=>window.print(),80);
 }
