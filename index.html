@@ -169,9 +169,9 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 const STATES=[['','—'],['AL','AL'],['AK','AK'],['AZ','AZ'],['AR','AR'],['CA','CA'],['CO','CO'],['CT','CT'],['DE','DE'],['DC','DC'],['FL','FL'],['GA','GA'],['HI','HI'],['ID','ID'],['IL','IL'],['IN','IN'],['IA','IA'],['KS','KS'],['KY','KY'],['LA','LA'],['ME','ME'],['MD','MD'],['MA','MA'],['MI','MI'],['MN','MN'],['MS','MS'],['MO','MO'],['MT','MT'],['NE','NE'],['NV','NV'],['NH','NH'],['NJ','NJ'],['NM','NM'],['NY','NY'],['NC','NC'],['ND','ND'],['OH','OH'],['OK','OK'],['OR','OR'],['PA','PA'],['RI','RI'],['SC','SC'],['SD','SD'],['TN','TN'],['TX','TX'],['UT','UT'],['VT','VT'],['VA','VA'],['WA','WA'],['WV','WV'],['WI','WI'],['WY','WY'],['AS','AS (American Samoa)'],['GU','GU'],['MP','MP'],['PR','PR'],['VI','VI']];
-const RTYPES=[['man','Man (Mr.)'],['woman_married','Woman — married (Mrs.)'],['woman_single','Woman — single (Miss)'],['woman_unspecified','Woman — marital status not known (Ms.)'],['doctor','Doctor (Dr.)'],['other','Person — no title'],['business','Business / company / agency (no person)'],['congress','U.S. House Member (The Honorable …)']];
+const RTYPES=[['man','Man (Mr.)'],['woman_married','Woman — married (Mrs.)'],['woman_single','Woman — single (Miss)'],['woman_unspecified','Woman — marital status not known (Ms.)'],['doctor','Doctor (Dr.)'],['other','Person — no title'],['business','Business / company / agency (no person)'],['congress','Elected / government official (The Honorable …) — Congress, Senate, Governor, any']];
 const SALMODES=[['auto','Automatic (title + last name)'],['twimc','To Whom It May Concern:'],['sir','Dear Sir or Madam:'],['team','Dear [Organization] Team,'],['custom','Custom…'],['none','No salutation']];
-const LTYPES=['General letter','Request','Inquiry','Complaint','Dispute / appeal','Demand','Thank you','Cover letter (job application)','Recommendation / reference','Resignation','Notice','Acknowledgment / verification request','Introduction','Proposal','Follow-up','Apology','Letter to a Member of Congress','Other'];
+const LTYPES=['General letter','Request','Inquiry','Complaint','Dispute / appeal','Demand','Thank you','Cover letter (job application)','Recommendation / reference','Resignation','Notice','Acknowledgment / verification request','Introduction','Proposal','Follow-up','Apology','Letter to a Member of Congress','Letter to an elected / government official','Other'];
 const TONES=['Formal','Professional','Neutral','Firm','Polite and courteous','Plain and simple'];
 const LENGTHS=[['short','Short (1–2 paragraphs)'],['medium','Medium (3–4 paragraphs)'],['long','Long (5+ paragraphs)']];
 const CLOSINGS=['Sincerely,','Respectfully,','Respectfully yours,','Yours truly,','Regards,','Best regards,','Thank you,'];
@@ -186,8 +186,11 @@ const ESIZES=['10','11','12','13','14'];
 const RSIZES=['7','7.5','8','8.5','9','10','11','12'];
 const RLINES=[['1.2','Tight (1.2)'],['1.35','Normal (1.35)'],['1.5','Roomy (1.5) — like your sample'],['1.7','Extra roomy (1.7)']];
 const ASKS=['','Sponsor a bill I drafted','Cosponsor a bill','Support a bill','Oppose a bill','Add provisions to an existing bill','Meet with me or her/his staff','Help with a federal agency (casework)','Share my views on an issue'];
-const OFFICES=[['dc','Washington, DC office'],['district','District office']];
-const MEMBER0=()=>({name:"Uifa'atali Amata Coleman Radewagen",sal:'Congresswoman Amata',dcStreet:'2001 Rayburn House Office Building',dcCity:'Washington',dcState:'DC',dcZip:'20515',distStreet:'1 Fagatogo Square, P.O. Box 5859',distCity:'Pago Pago',distState:'AS',distZip:'96799'});
+const OFFICES=[['dc','Main office (Washington, DC / capitol)'],['district','District / local office']];
+const OTYPES=[['house','U.S. Representative'],['delegate','U.S. House Delegate (American Samoa, DC, Guam…)'],['senate','U.S. Senator'],['president','President of the United States'],['vp','Vice President of the United States'],['cabinet','Cabinet Secretary / federal agency head'],['governor','Governor'],['ltgov','Lieutenant Governor'],['state_senate','State / territorial Senator'],['state_house','State / territorial Representative'],['mayor','Mayor'],['council','City / county Councilmember'],['other','Other official']];
+const OT={house:['U.S. House of Representatives','Representative'],delegate:['U.S. House of Representatives','Delegate'],senate:['United States Senate','Senator'],president:['The White House','President'],vp:['Office of the Vice President','Vice President'],cabinet:['','Secretary'],governor:['Office of the Governor','Governor'],ltgov:['Office of the Lieutenant Governor','Lieutenant Governor'],state_senate:['','Senator'],state_house:['','Representative'],mayor:['Office of the Mayor','Mayor'],council:['','Councilmember'],other:['','']};
+const CONGRESS_TYPES=['house','delegate','senate'];
+const MEMBER0=()=>({otype:'delegate',org:'U.S. House of Representatives',name:"Uifa'atali Amata Coleman Radewagen",sal:'Congresswoman Amata',dcStreet:'2001 Rayburn House Office Building',dcCity:'Washington',dcState:'DC',dcZip:'20515',distStreet:'1 Fagatogo Square, P.O. Box 5859',distCity:'Pago Pago',distState:'AS',distZip:'96799'});
 const VERSIONS=[['1','1 version'],['2','2 versions to choose from'],['3','3 versions to choose from']];
 
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -331,8 +334,8 @@ function buildSettings(){
     <div class="hint">Title rule: women — Mrs. if married, Miss if explicitly single, otherwise Ms.; men — always Mr. Marital status is never guessed from a name or children.</div>
   </div>
 
-  <div class="card"><h3>U.S. House Members (saved)</h3>
-    <div class="hint" style="margin-top:0">Members you write to. Pick one in Compose → Recipient type “U.S. House Member” and the address and salutation fill in for you.</div>
+  <div class="card"><h3>Officials I write to (Congress, Senate, Governor, any)</h3>
+    <div class="hint" style="margin-top:0">Save any elected or government official once. In Compose pick Recipient type “Elected / government official” and the address and salutation fill in for you.</div>
     <div id="membersEditor"></div>
   </div>
 
@@ -382,39 +385,45 @@ function buildTable(){
   }
   $('tableEditor').innerHTML=h;
 }
-function memberOpts(){return S.settings.members.map((m,i)=>[String(i),m.name||('Member '+(i+1))])}
+function otLabel(t){return (OTYPES.find(o=>o[0]===t)||['',''])[1]}
+function memberOpts(){return S.settings.members.map((m,i)=>[String(i),(m.name||('Official '+(i+1)))+(m.otype?' — '+otLabel(m.otype):'')])}
+function memberOrg(m){return (m.org&&m.org.trim())||(OT[m.otype||'house']||['',''])[0]}
+function memberSal(m,name){if(m&&m.sal&&m.sal.trim())return m.sal.trim();const t=m&&m.otype||'house';const pre=(OT[t]||['',''])[1];const ln=lastName(name||(m&&m.name)||'');return pre?(pre+(ln?' '+ln:'')):(ln||'')}
 function buildCongress(){
   const box=$('congressBox');if(!box)return;
   const l=S.letter;
   if(l.rtype!=='congress'){box.innerHTML='';return}
   box.innerHTML='<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:8px 0;background:#f6f9fc">'
-   +'<div class="r2"><div><label>Saved member</label>'+(S.settings.members.length?sel('letter.member',memberOpts()):'<div class="hint">Add one in Settings → U.S. House Members.</div>')+'</div><div><label>Send to</label>'+sel('letter.office',OFFICES)+'</div></div>'
+   +'<div class="r2"><div><label>Saved official</label>'+(S.settings.members.length?sel('letter.member',memberOpts()):'<div class="hint">Add one in Settings → Officials I write to.</div>')+'</div><div><label>Send to</label>'+sel('letter.office',OFFICES)+'</div></div>'
    +'<div class="r2"><div><label>What are you asking for?</label>'+sel('letter.ask',ASKS.map(a=>[a,a||'— choose —']))+'</div><div><label>Bill number (optional)</label>'+inp('letter.billNo','e.g. H.R. 6158')+'</div></div>'
-   +'<div class="hint">Format used: “The Honorable …” address, “Dear …:” salutation, “Respectfully,” closing, and your full address so the office can reply. Mail to Washington, DC offices goes through security screening and can take weeks; the district office or the member\'s website contact form is often faster.</div></div>';
+   +'<div class="hint">Format used: “The Honorable …” address, “Dear [Senator / Governor / Representative …] Last name:” salutation, “Respectfully,” closing, and your full address so the office can reply. Mail to Congress in Washington, DC goes through security screening and can take weeks; a district or local office, or the official\'s website contact form, is often faster.</div></div>';
 }
 function applyMember(){
   const l=S.letter;if(l.rtype!=='congress')return;
   const m=S.settings.members[+l.member]||S.settings.members[0];if(!m)return;
   const d=l.office==='district';
-  l.rname=m.name||'';l.rorg='U.S. House of Representatives';l.attn='';l.street2='';
+  l.rname=m.name||'';l.rorg=memberOrg(m);l.attn='';l.street2='';
   l.street=(d?m.distStreet:m.dcStreet)||'';l.city=(d?m.distCity:m.dcCity)||'';l.state=(d?m.distState:m.dcState)||'';l.zip=(d?m.distZip:m.dcZip)||'';
   l.salMode='auto';
 }
+function setOffLtype(){const L=S.letter,m=S.settings.members[+L.member];L.wasOfficial=true;if(/^Letter to (a Member of Congress|an elected)/.test(L.ltype)||L.ltype==='General letter')L.ltype=(m&&CONGRESS_TYPES.includes(m.otype||'house'))?'Letter to a Member of Congress':'Letter to an elected / government official'}
 function buildMembers(){
   const box=$('membersEditor');if(!box)return;
   box.innerHTML=S.settings.members.map((m,i)=>{const k='settings.members.'+i+'.';
     return '<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:8px 0">'
+    +'<label>Office</label>'+sel(k+'otype',OTYPES)
     +'<label>Full name (printed after “The Honorable”)</label>'+inp(k+'name','e.g. Uifa\'atali Amata Coleman Radewagen')
-    +'<label>Salutation name</label>'+inp(k+'sal','e.g. Congresswoman Amata or Representative Smith')
-    +'<label>Washington, DC office street</label>'+inp(k+'dcStreet','e.g. 2001 Rayburn House Office Building')
+    +'<label>Office / organization line</label>'+inp(k+'org','Blank = automatic, e.g. United States Senate, Office of the Governor, Washington State Senate')
+    +'<label>Salutation name (optional)</label>'+inp(k+'sal','Blank = automatic, e.g. Senator Murray, Governor Smith')
+    +'<label>Main office street (Washington, DC or capitol)</label>'+inp(k+'dcStreet','e.g. 2001 Rayburn House Office Building')
     +'<div class="r3"><div><label>City</label>'+inp(k+'dcCity','Washington')+'</div><div><label>State</label>'+sel(k+'dcState',STATES)+'</div><div><label>ZIP</label>'+inp(k+'dcZip','20515')+'</div></div>'
-    +'<label>District office street</label>'+inp(k+'distStreet','')
+    +'<label>District / local office street (optional)</label>'+inp(k+'distStreet','')
     +'<div class="r3"><div><label>City</label>'+inp(k+'distCity','')+'</div><div><label>State</label>'+sel(k+'distState',STATES)+'</div><div><label>ZIP</label>'+inp(k+'distZip','')+'</div></div>'
     +'<div class="btns"><button class="b red sm" onclick="delMember('+i+')">Remove</button></div></div>'}).join('')
-   +'<div class="btns"><button class="b alt sm" onclick="addMember()">+ Add member</button></div>';
+   +'<div class="btns"><button class="b alt sm" onclick="addMember()">+ Add official</button></div>';
 }
-function addMember(){S.settings.members.push({name:'',sal:'',dcStreet:'',dcCity:'Washington',dcState:'DC',dcZip:'20515',distStreet:'',distCity:'',distState:'',distZip:''});persist();buildMembers();buildCongress();fillForm()}
-function delMember(i){if(!confirm('Remove this member?'))return;S.settings.members.splice(i,1);if(+S.letter.member>=S.settings.members.length)S.letter.member='0';persist();buildMembers();buildCongress();fillForm();render()}
+function addMember(){S.settings.members.push({otype:'senate',org:'',name:'',sal:'',dcStreet:'',dcCity:'Washington',dcState:'DC',dcZip:'20510',distStreet:'',distCity:'',distState:'',distZip:''});persist();buildMembers();buildCongress();fillForm()}
+function delMember(i){if(!confirm('Remove this official?'))return;S.settings.members.splice(i,1);if(+S.letter.member>=S.settings.members.length)S.letter.member='0';persist();buildMembers();buildCongress();fillForm();render()}
 function addRow(){S.letter.tableRows.push(['','','','']);persist();buildTable();fillForm()}
 function delRow(i){S.letter.tableRows.splice(i,1);if(!S.letter.tableRows.length)S.letter.tableRows=[['','','','']];persist();buildTable();fillForm();render()}
 
@@ -434,9 +443,9 @@ function onEdit(e){
   if(!k)return;
   setPath(k,t.type==='checkbox'?t.checked:t.value);
   if(k==='letter.tableOn')buildTable(),fillForm();
-  if(k==='letter.rtype'){const L=S.letter;if(t.value==='congress'){L.closing='Respectfully,';L.ltype='Letter to a Member of Congress';applyMember()}else if(L.rorg==='U.S. House of Representatives'){L.rname='';L.rorg='';L.street='';L.street2='';L.city='';L.state='';L.zip='';L.closing=S.settings.closing;if(L.ltype==='Letter to a Member of Congress')L.ltype='General letter'}buildCongress();fillForm()}
-  if((k==='letter.member'||k==='letter.office')&&S.letter.rtype==='congress'){applyMember();fillForm()}
-  if(k.indexOf('settings.members.')===0){buildCongress();if(S.letter.rtype==='congress'&&k.split('.')[2]===String(S.letter.member)){applyMember()}fillForm()}
+  if(k==='letter.rtype'){const L=S.letter;if(t.value==='congress'){L.closing='Respectfully,';applyMember();setOffLtype()}else if(L.wasOfficial||L.rorg==='U.S. House of Representatives'){L.wasOfficial=false;L.rname='';L.rorg='';L.street='';L.street2='';L.city='';L.state='';L.zip='';L.closing=S.settings.closing;if(/^Letter to (a Member of Congress|an elected)/.test(L.ltype))L.ltype='General letter'}buildCongress();fillForm()}
+  if((k==='letter.member'||k==='letter.office')&&S.letter.rtype==='congress'){applyMember();setOffLtype();fillForm()}
+  if(k.indexOf('settings.members.')===0){if(/\.otype$/.test(k))buildMembers();buildCongress();if(S.letter.rtype==='congress'&&k.split('.')[2]===String(S.letter.member)){applyMember()}fillForm()}
   persist();render();
 }
 document.addEventListener('input',onEdit);
@@ -475,7 +484,7 @@ function salutation(){
   if(m==='twimc')return 'To Whom It May Concern:';
   if(m==='sir')return 'Dear Sir or Madam:';
   if(m==='team')return 'Dear '+(l.rorg||'Team')+(l.rorg?' Team':'')+',';
-  if(l.rtype==='congress'){const m=S.settings.members[+l.member];const sn=(m&&m.sal&&m.sal.trim())||(l.rname.trim()?'Representative '+lastName(l.rname):'');return sn?'Dear '+sn+':':'Dear Representative:'}
+  if(l.rtype==='congress'){const m=S.settings.members[+l.member];const sn=memberSal(m,l.rname);return sn?'Dear '+sn+':':'To Whom It May Concern:'}
   if(l.rtype==='business'||!l.rname.trim())return 'Dear Sir or Madam:';
   const t=titleFor(l.rtype);
   return 'Dear '+(t?t+' '+lastName(l.rname):l.rname.trim())+',';
@@ -787,7 +796,8 @@ function context(){
     l.tableRows.forEach(r=>{if(cols.some(i=>(r[i]||'').trim()))c+=cols.map(i=>r[i]||'').join(' | ')+'\n'});
   }
   if(l.rtype==='congress'){
-    c+='LETTER TO A MEMBER OF THE U.S. HOUSE OF REPRESENTATIVES. Rules: formal and respectful; open by saying who the sender is and where he lives (constituent or U.S. national, only as the sender states); keep to one issue; name the bill number if given; use only facts the sender gave; end with one clear, specific request; no flattery, no filler.\n';
+    {const m=S.settings.members[+l.member];c+='OFFICIAL: '+(m?otLabel(m.otype||'house'):'Elected official')+'\n'}
+    c+='LETTER TO AN ELECTED OR GOVERNMENT OFFICIAL. Rules: formal and respectful; open by saying who the sender is and where he lives (constituent or U.S. national, only as the sender states); keep to one issue; name the bill number if given; use only facts the sender gave; end with one clear, specific request; no flattery, no filler.\n';
     if(l.ask)c+='WHAT THE SENDER IS ASKING FOR: '+l.ask+'\n';
     if(l.billNo.trim())c+='BILL NUMBER: '+l.billNo.trim()+'\n';
   }
