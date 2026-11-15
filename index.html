@@ -83,6 +83,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #rtsPage .rts{position:absolute;color:#d00000;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:uppercase;text-align:center;line-height:1.25;letter-spacing:.02em;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #rtsPage .rts.box{border:3px solid #d00000;padding:10px 18px}
 #rtsPage .rts div+div{margin-top:6px}
+#rtsLabels{display:none}
+#rtsLabels .lab{position:absolute;width:4in;height:2in;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:.12in}
+#rtsLabels .lab .rts{position:static;font-size:17pt;padding:8px 8px;border-width:2px}
+#rtsLabels .lab .rts div+div{margin-top:5px}
+#rtsLabels .lab .rts div:last-child{font-size:10.5pt}
+#rtsLabels .rts{color:#d00000;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:uppercase;text-align:center;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#rtsLabels .rts.box{border:2px solid #d00000}
 #rtsPage .ghost{position:absolute;color:#c9d1db;font:11px system-ui}
 #envPage .stamp{position:absolute;right:30px;top:24px;width:70px;height:78px;border:1px dashed #c4ccd6;color:#b2bbc6;font:10px system-ui;text-align:center;padding-top:30px}
 [contenteditable="true"]{outline:none;border-radius:3px;cursor:text}
@@ -123,6 +130,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
   body.pr #rtsBox{display:block!important}
   body.pr #letterBox,body.pr #envBox{display:none!important}
   #rtsPage .ghost{display:none}
+  body.pk header,body.pk .app{display:none!important}
+  body.pk #rtsLabels{display:block!important;position:relative;width:8.5in;height:11in}
   #letterPage{padding:.3in!important;width:auto!important;min-height:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #envPage .stamp{display:none}
 }
@@ -130,6 +139,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 <style id="pageStyle"></style>
 </head>
 <body class="pl">
+<div id="rtsLabels"></div>
 <header>
   <h1>✉ LetterDesk</h1><span>Write any letter to a person, business or company — with #10 envelope printing</span><button class="b alt" style="margin-left:auto;padding:6px 12px" onclick="toggleFull()" id="fsBtn">⛶ Full screen</button>
 </header>
@@ -158,6 +168,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <button class="b" onclick="printIt('pl')">🖨 Print letter</button>
       <button class="b" onclick="printIt('pe')">🖨 Print #10 envelope</button>
       <button class="b" id="rtsPrintBtn" style="display:none;background:#b00000" onclick="printIt('pr')">🖨 Print Return to Sender</button>
+      <button class="b" id="rtsLabelBtn" style="display:none;background:#b00000" onclick="printIt('pk')">🏷 Print as labels (thick mail)</button>
       <button class="b alt" onclick="downloadDoc()">⬇ Word (.doc)</button>
       <button class="b alt" id="boldBtn" title="Bold (Ctrl+B): select words in the letter, then press" onmousedown="event.preventDefault()" onclick="boldIt()"><b>B</b> Bold</button>
       <button class="b alt" onclick="copyText()">Copy text</button>
@@ -168,7 +179,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <div class="scalebox" id="letterBox"><div class="scaled lt" id="letterPage"></div></div>
       <div class="scalebox" id="envBox" style="display:none"><div class="scaled" id="envPage"></div></div>
       <div class="scalebox" id="rtsBox" style="display:none"><div class="scaled" id="rtsPage"></div></div>
-      <div class="note" id="rtsNote" style="display:none">For mail that came to you by mistake: put the wrong envelope in your printer the same way as a #10 envelope (paper size “#10 Envelope” or 9.5 × 4.125 in, margins “None”, scale 100%) and print. Do not open the envelope. Also cross out the barcode along the bottom with a pen, then put it back in the mail. The bottom strip of the envelope is left clear so the post office can add its return barcode. Change the position and size in Settings → Return to Sender.</div>
+      <div class="note" id="rtsNote" style="display:none"><b>Thick or large mail?</b> Press <b>🏷 Print as labels</b>: it prints 10 red Return to Sender labels on one letter-size sheet (Avery 5163 / 8163 shipping labels, 2 × 4 in, or plain paper you cut out and tape). Stick one on the front of the wrong mail in a blank spot — do not cover the sender’s return address — cross out the barcode, and put it back in the mail as it is. No new envelope or stamp is needed. Keep the other labels for next time.<br><br><b>Thin #10 envelope?</b> Put the wrong envelope in your printer the same way as a #10 envelope (paper size “#10 Envelope” or 9.5 × 4.125 in, margins “None”, scale 100%) and print. Do not open the envelope. Also cross out the barcode along the bottom with a pen, then put it back in the mail. The bottom strip of the envelope is left clear so the post office can add its return barcode. Change the position and size in Settings → Return to Sender.</div>
       <div class="note" id="envNote" style="display:none">To print the envelope: choose your printer's “#10 Envelope” paper size (or 9.5 × 4.125 in), landscape, margins “None”, scale 100%, then feed the envelope face-up as your printer requires.</div>
     </div>
   </div>
@@ -489,7 +500,7 @@ function setView(v){
   $('letterBox').style.display=v==='letter'?'block':'none';
   $('envBox').style.display=v==='env'?'block':'none';
   $('envNote').style.display=v==='env'?'block':'none';
-  $('rtsBox').style.display=v==='rts'?'block':'none';$('rtsNote').style.display=v==='rts'?'block':'none';$('rtsPrintBtn').style.display=v==='rts'?'':'none';$('vRts').className=v==='rts'?'on':'';
+  $('rtsBox').style.display=v==='rts'?'block':'none';$('rtsNote').style.display=v==='rts'?'block':'none';$('rtsPrintBtn').style.display=v==='rts'?'':'none';$('rtsLabelBtn').style.display=v==='rts'?'':'none';$('vRts').className=v==='rts'?'on':'';
   $('editNote').style.display=v==='letter'?'block':'none';
   $('vLetter').className=v==='letter'?'on':'';
   $('vEnv').className=v==='env'?'on':'';
@@ -704,12 +715,21 @@ function renderRts(){
   el.innerHTML='<div class="ghost" style="left:48px;top:42px">sender’s return address</div><div class="ghost" style="right:30px;top:24px">postage</div><div class="ghost" style="left:392px;top:168px">wrong address</div>'
     +'<div class="rts'+(s.rtsBox?' box':'')+'" style="'+pos+';font-size:'+(s.rtsSize||'20')+'pt">'+lines.map(x=>'<div>'+esc(x.toUpperCase())+'</div>').join('')+'</div>';
 }
+function renderLabels(){
+  const s=S.settings,el=$('rtsLabels');if(!el)return;
+  const lines=[s.rtsL1,s.rtsL2,s.rtsL3].map(x=>String(x||'').trim()).filter(Boolean);
+  const inner='<div class="rts'+(s.rtsBox?' box':'')+'">'+lines.map(x=>'<div>'+esc(x.toUpperCase())+'</div>').join('')+'</div>';
+  let h='';for(let r=0;r<5;r++)for(let c=0;c<2;c++)h+='<div class="lab" style="top:'+(0.5+r*2)+'in;left:'+(c?4.34375:0.15625)+'in">'+inner+'</div>';
+  el.innerHTML=h;
+}
 function render(){renderLetter();renderEnvelope();renderRts();fitAll()}
 window.addEventListener('resize',fitAll);
+window.addEventListener('afterprint',()=>{if(document.body.className==='pk')setView('rts')});
 
 /* ============ PRINT / EXPORT ============ */
 function printIt(mode){
-  setView(mode==='pe'?'env':mode==='pr'?'rts':'letter');
+  setView(mode==='pe'?'env':(mode==='pr'||mode==='pk')?'rts':'letter');
+  if(mode==='pk'){renderLabels();$('pageStyle').textContent='@page{size:letter;margin:0}';document.body.className='pk';setTimeout(()=>window.print(),80);return}
   $('pageStyle').textContent=(mode==='pe'||mode==='pr')?'@page{size:9.5in 4.125in;margin:0}':'@page{size:letter;margin:0.9in 1in}';
   document.body.className=mode;
   setTimeout(()=>window.print(),80);
