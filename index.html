@@ -84,12 +84,14 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #rtsPage .rts.box{border:3px solid #d00000;padding:10px 18px}
 #rtsPage .rts div+div{margin-top:6px}
 #rtsLabels{display:none}
-#rtsLabels .lab{position:absolute;width:4in;height:2in;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:.12in}
-#rtsLabels .lab .rts{position:static;font-size:17pt;padding:8px 8px;border-width:2px}
-#rtsLabels .lab .rts div+div{margin-top:5px}
-#rtsLabels .lab .rts div:last-child{font-size:10.5pt}
-#rtsLabels .rts{color:#d00000;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:uppercase;text-align:center;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-#rtsLabels .rts.box{border:2px solid #d00000}
+#lblPage{width:816px;height:1056px;position:relative;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.35);overflow:hidden}
+#lblPage .lab{outline:1px dashed #c9d1db}
+#rtsLabels .lab,#lblPage .lab{position:absolute;width:4in;height:2in;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:.12in}
+#rtsLabels .lab .rts,#lblPage .lab .rts{position:static;font-size:17pt;padding:8px 8px;border-width:2px}
+#rtsLabels .lab .rts div+div,#lblPage .lab .rts div+div{margin-top:5px}
+#rtsLabels .lab .rts div:last-child,#lblPage .lab .rts div:last-child{font-size:10.5pt}
+#rtsLabels .rts,#lblPage .rts{color:#d00000;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:uppercase;text-align:center;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#rtsLabels .rts.box,#lblPage .rts.box{border:2px solid #d00000}
 #rtsPage .ghost{position:absolute;color:#c9d1db;font:11px system-ui}
 #envPage .stamp{position:absolute;right:30px;top:24px;width:70px;height:78px;border:1px dashed #c4ccd6;color:#b2bbc6;font:10px system-ui;text-align:center;padding-top:30px}
 [contenteditable="true"]{outline:none;border-radius:3px;cursor:text}
@@ -130,6 +132,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
   body.pr #rtsBox{display:block!important}
   body.pr #letterBox,body.pr #envBox{display:none!important}
   #rtsPage .ghost{display:none}
+  #lblWrap{display:none!important}
   body.pk header,body.pk .app{display:none!important}
   body.pk #rtsLabels{display:block!important;position:relative;width:8.5in;height:11in}
   #letterPage{padding:.3in!important;width:auto!important;min-height:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -180,6 +183,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <div class="scalebox" id="envBox" style="display:none"><div class="scaled" id="envPage"></div></div>
       <div class="scalebox" id="rtsBox" style="display:none"><div class="scaled" id="rtsPage"></div></div>
       <div class="note" id="rtsNote" style="display:none"><b>Thick or large mail?</b> Press <b>🏷 Print as labels</b>: it prints 10 red Return to Sender labels on one letter-size sheet (Avery 5163 / 8163 shipping labels, 2 × 4 in, or plain paper you cut out and tape). Stick one on the front of the wrong mail in a blank spot — do not cover the sender’s return address — cross out the barcode, and put it back in the mail as it is. No new envelope or stamp is needed. Keep the other labels for next time.<br><br><b>Thin #10 envelope?</b> Put the wrong envelope in your printer the same way as a #10 envelope (paper size “#10 Envelope” or 9.5 × 4.125 in, margins “None”, scale 100%) and print. Do not open the envelope. Also cross out the barcode along the bottom with a pen, then put it back in the mail. The bottom strip of the envelope is left clear so the post office can add its return barcode. Change the position and size in Settings → Return to Sender.</div>
+      <div id="lblWrap" style="display:none"><div class="note" style="margin-top:14px"><b>🏷 Label sheet for thick mail</b> — 10 labels, 2 × 4 in (Avery 5163 / 8163) or plain paper. Press “🏷 Print as labels” to print it.</div><div class="scalebox" id="lblBox"><div class="scaled" id="lblPage"></div></div></div>
       <div class="note" id="envNote" style="display:none">To print the envelope: choose your printer's “#10 Envelope” paper size (or 9.5 × 4.125 in), landscape, margins “None”, scale 100%, then feed the envelope face-up as your printer requires.</div>
     </div>
   </div>
@@ -500,7 +504,7 @@ function setView(v){
   $('letterBox').style.display=v==='letter'?'block':'none';
   $('envBox').style.display=v==='env'?'block':'none';
   $('envNote').style.display=v==='env'?'block':'none';
-  $('rtsBox').style.display=v==='rts'?'block':'none';$('rtsNote').style.display=v==='rts'?'block':'none';$('rtsPrintBtn').style.display=v==='rts'?'':'none';$('rtsLabelBtn').style.display=v==='rts'?'':'none';$('vRts').className=v==='rts'?'on':'';
+  $('rtsBox').style.display=v==='rts'?'block':'none';$('rtsNote').style.display=v==='rts'?'block':'none';$('rtsPrintBtn').style.display=v==='rts'?'':'none';$('rtsLabelBtn').style.display=v==='rts'?'':'none';$('lblWrap').style.display=v==='rts'?'block':'none';$('vRts').className=v==='rts'?'on':'';
   $('editNote').style.display=v==='letter'?'block':'none';
   $('vLetter').className=v==='letter'?'on':'';
   $('vEnv').className=v==='env'?'on':'';
@@ -707,7 +711,7 @@ function fit(boxId,pageId,base){
   box.style.width=(base*sc)+'px';
   box.style.height=(pg.offsetHeight*sc)+'px';
 }
-function fitAll(){fit('letterBox','letterPage',816);fit('envBox','envPage',912);fit('rtsBox','rtsPage',912)}
+function fitAll(){fit('letterBox','letterPage',816);fit('envBox','envPage',912);fit('rtsBox','rtsPage',912);if($('lblWrap')&&$('lblWrap').style.display!=='none')fit('lblBox','lblPage',816)}
 function renderRts(){
   const s=S.settings,el=$('rtsPage');if(!el)return;
   const lines=[s.rtsL1,s.rtsL2,s.rtsL3].map(x=>String(x||'').trim()).filter(Boolean);
@@ -720,9 +724,9 @@ function renderLabels(){
   const lines=[s.rtsL1,s.rtsL2,s.rtsL3].map(x=>String(x||'').trim()).filter(Boolean);
   const inner='<div class="rts'+(s.rtsBox?' box':'')+'">'+lines.map(x=>'<div>'+esc(x.toUpperCase())+'</div>').join('')+'</div>';
   let h='';for(let r=0;r<5;r++)for(let c=0;c<2;c++)h+='<div class="lab" style="top:'+(0.5+r*2)+'in;left:'+(c?4.34375:0.15625)+'in">'+inner+'</div>';
-  el.innerHTML=h;
+  el.innerHTML=h;const pv=$('lblPage');if(pv)pv.innerHTML=h;
 }
-function render(){renderLetter();renderEnvelope();renderRts();fitAll()}
+function render(){renderLetter();renderEnvelope();renderRts();renderLabels();fitAll()}
 window.addEventListener('resize',fitAll);
 window.addEventListener('afterprint',()=>{if(document.body.className==='pk')setView('rts')});
 
