@@ -95,6 +95,10 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #rtsLabels .lab.sm .rts,#lblPage .lab.sm .rts{font-size:11.5pt;padding:3px 5px;line-height:1.12}
 #rtsLabels .lab.sm .rts div+div,#lblPage .lab.sm .rts div+div{margin-top:1px}
 #rtsLabels .lab.sm .rts div:last-child,#lblPage .lab.sm .rts div:last-child{font-size:7pt}
+#rtsLabels .lab.xs,#lblPage .lab.xs{width:1.75in;height:.5in;padding:.02in .05in}
+#rtsLabels .lab.xs .rts,#lblPage .lab.xs .rts{font-size:7pt;padding:1px 3px;line-height:1.05;border-width:1px;max-width:1.62in}
+#rtsLabels .lab.xs .rts div+div,#lblPage .lab.xs .rts div+div{margin-top:0}
+#rtsLabels .lab.xs .rts div:last-child,#lblPage .lab.xs .rts div:last-child{font-size:5.5pt}
 #rtsLabels .rts.box,#lblPage .rts.box{border:2px solid #d00000}
 #rtsPage .ghost{position:absolute;color:#c9d1db;font:11px system-ui}
 #envPage .stamp{position:absolute;right:30px;top:24px;width:70px;height:78px;border:1px dashed #c4ccd6;color:#b2bbc6;font:10px system-ui;text-align:center;padding-top:30px}
@@ -186,8 +190,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <div class="scalebox" id="letterBox"><div class="scaled lt" id="letterPage"></div></div>
       <div class="scalebox" id="envBox" style="display:none"><div class="scaled" id="envPage"></div></div>
       <div class="scalebox" id="rtsBox" style="display:none"><div class="scaled" id="rtsPage"></div></div>
-      <div class="note" id="rtsNote" style="display:none"><b>Thick or large mail?</b> Press <b>🏷 Print as labels</b>: it prints red Return to Sender labels on one letter-size sheet — small address labels by default (Avery 5160 / 8160, 1 × 2⅝ in, 30 per sheet), or plain paper you cut out and tape. Stick one on the front of the wrong mail in a blank spot — do not cover the sender’s return address — cross out the barcode, and put it back in the mail as it is. No new envelope or stamp is needed. Keep the other labels for next time.<br><br><b>Thin #10 envelope?</b> Put the wrong envelope in your printer the same way as a #10 envelope (paper size “#10 Envelope” or 9.5 × 4.125 in, margins “None”, scale 100%) and print. Do not open the envelope. Also cross out the barcode along the bottom with a pen, then put it back in the mail. The bottom strip of the envelope is left clear so the post office can add its return barcode. Change the position and size in Settings → Return to Sender.</div>
-      <div id="lblWrap" style="display:none"><div class="note" style="margin-top:14px"><b>🏷 Label sheet for thick mail</b> — small labels (1 × 2⅝ in, 30 per sheet, Avery 5160 / 8160) or large (2 × 4 in, 10 per sheet); change it in Settings → Return to Sender. Plain paper works too: cut one out and tape it on. Press “🏷 Print as labels” to print it.</div><div class="scalebox" id="lblBox"><div class="scaled" id="lblPage"></div></div></div>
+      <div class="note" id="rtsNote" style="display:none"><b>Thick or large mail?</b> Press <b>🏷 Print as labels</b>: it prints red Return to Sender labels on one letter-size sheet — the smallest return-address labels by default (Avery 5167 / 8167, ½ × 1¾ in, 80 per sheet), or plain paper you cut out and tape. Stick one on the front of the wrong mail in a blank spot — do not cover the sender’s return address — cross out the barcode, and put it back in the mail as it is. No new envelope or stamp is needed. Keep the other labels for next time.<br><br><b>Thin #10 envelope?</b> Put the wrong envelope in your printer the same way as a #10 envelope (paper size “#10 Envelope” or 9.5 × 4.125 in, margins “None”, scale 100%) and print. Do not open the envelope. Also cross out the barcode along the bottom with a pen, then put it back in the mail. The bottom strip of the envelope is left clear so the post office can add its return barcode. Change the position and size in Settings → Return to Sender.</div>
+      <div id="lblWrap" style="display:none"><div class="note" style="margin-top:14px"><b>🏷 Label sheet for thick mail</b> — smallest labels (½ × 1¾ in, 80 per sheet, Avery 5167 / 8167), small (1 × 2⅝ in, 30 per sheet) or large (2 × 4 in, 10 per sheet); change it in Settings → Return to Sender. Plain paper works too: cut one out and tape it on. Press “🏷 Print as labels” to print it.</div><div class="scalebox" id="lblBox"><div class="scaled" id="lblPage"></div></div></div>
       <div class="note" id="envNote" style="display:none">To print the envelope: choose your printer's “#10 Envelope” paper size (or 9.5 × 4.125 in), landscape, margins “None”, scale 100%, then feed the envelope face-up as your printer requires.</div>
     </div>
   </div>
@@ -225,7 +229,7 @@ const OT={house:['U.S. House of Representatives','Representative'],delegate:['U.
 const CONGRESS_TYPES=['house','delegate','senate'];
 const MEMBER0=()=>({otype:'delegate',org:'U.S. House of Representatives',name:"Uifa'atali Amata Coleman Radewagen",sal:'Congresswoman Amata',dcStreet:'2001 Rayburn House Office Building',dcCity:'Washington',dcState:'DC',dcZip:'20515',distStreet:'1 Fagatogo Square, P.O. Box 5859',distCity:'Pago Pago',distState:'AS',distZip:'96799'});
 const RTSPOS=[['lowerleft','Lower left (recommended — clear of the addresses)'],['center','Middle (over the wrong address)'],['upper','Upper middle (between return address and stamp)'],['lowerright','Lower right']];
-const RTSLABELS=[['small','Small — 1 × 2⅝ in, 30 per sheet (Avery 5160 / 8160 address labels)'],['large','Large — 2 × 4 in, 10 per sheet (Avery 5163 / 8163 shipping labels)']];
+const RTSLABELS=[['tiny','Smallest — ½ × 1¾ in, 80 per sheet (Avery 5167 / 8167 return address labels)'],['small','Small — 1 × 2⅝ in, 30 per sheet (Avery 5160 / 8160 address labels)'],['large','Large — 2 × 4 in, 10 per sheet (Avery 5163 / 8163 shipping labels)']];
 const RTSSIZES=[['14','14 pt'],['16','16 pt'],['18','18 pt'],['20','20 pt'],['24','24 pt'],['28','28 pt']];
 const VERSIONS=[['1','1 version'],['2','2 versions to choose from'],['3','3 versions to choose from']];
 
@@ -236,7 +240,7 @@ function defaultSettings(){return{
   name:'Aperaamo Tufue Levi',street:'1700 17th Ave, Apt # 611',city:'Seattle',state:'WA',zip:'98122',phone:'2533354064',email:'aperaamo.tufue.levi@gmail.com',
   sigTitle:'',closing:'Sincerely,',font:FONTS[0][0],fontSize:'11',letterhead:'rule',showTitleInAddr:true,
   envFont:FONTS[0][0],envSize:'12',retSize:'8',retLine:'1.5',envCaps:false,envReturn:true,
-  autoFull:true,members:[MEMBER0()],rtsL1:'NOT AT THIS ADDRESS',rtsL2:'RETURN TO SENDER',rtsL3:'RECIPIENT DOES NOT LIVE AT THIS ADDRESS.',rtsPos:'lowerleft',rtsSize:'16',rtsBox:true,rtsLabel:'small',pageBorder:false,borderColor:'#12304f',borderStyle:'solid',borderWidth:'2',envBorder:false
+  autoFull:true,members:[MEMBER0()],rtsL1:'NOT AT THIS ADDRESS',rtsL2:'RETURN TO SENDER',rtsL3:'RECIPIENT DOES NOT LIVE AT THIS ADDRESS.',rtsPos:'lowerleft',rtsSize:'16',rtsBox:true,rtsLabel:'tiny',pageBorder:false,borderColor:'#12304f',borderStyle:'solid',borderWidth:'2',envBorder:false
 }}
 function fixFonts(){
   const ok=FONTS.map(f=>f[0]);
@@ -731,6 +735,7 @@ function renderLabels(){
   const inner='<div class="rts'+(s.rtsBox?' box':'')+'">'+lines.map(x=>'<div>'+esc(x.toUpperCase())+'</div>').join('')+'</div>';
   let h='';
   if(s.rtsLabel==='large'){for(let r=0;r<5;r++)for(let c=0;c<2;c++)h+='<div class="lab" style="top:'+(0.5+r*2)+'in;left:'+(c?4.34375:0.15625)+'in">'+inner+'</div>'}
+  else if(s.rtsLabel==='tiny'){for(let r=0;r<20;r++)for(let c=0;c<4;c++)h+='<div class="lab xs" style="top:'+(0.5+r*0.5)+'in;left:'+(0.28125+c*2.0625)+'in">'+inner+'</div>'}
   else{for(let r=0;r<10;r++)for(let c=0;c<3;c++)h+='<div class="lab sm" style="top:'+(0.5+r)+'in;left:'+(0.1875+c*2.75)+'in">'+inner+'</div>'}
   el.innerHTML=h;const pv=$('lblPage');if(pv)pv.innerHTML=h;
 }
