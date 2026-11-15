@@ -148,11 +148,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <button class="b" onclick="printIt('pl')">🖨 Print letter</button>
       <button class="b" onclick="printIt('pe')">🖨 Print #10 envelope</button>
       <button class="b alt" onclick="downloadDoc()">⬇ Word (.doc)</button>
+      <button class="b alt" id="boldBtn" title="Bold (Ctrl+B): select words in the letter, then press" onmousedown="event.preventDefault()" onclick="boldIt()"><b>B</b> Bold</button>
       <button class="b alt" onclick="copyText()">Copy text</button>
       <button class="b alt" onclick="saveLetter()">💾 Save letter</button>
     </div>
     <div class="paperwrap">
-      <div class="editnote" id="editNote">✏ Click directly on the letter’s greeting, subject or body to edit it right here — changes sync with the form.</div>
+      <div class="editnote" id="editNote">✏ Click directly on the letter’s greeting, subject or body to edit it right here — changes sync with the form. To bold: select words in the letter body, then press <b>B Bold</b> (or Ctrl+B).</div>
       <div class="scalebox" id="letterBox"><div class="scaled lt" id="letterPage"></div></div>
       <div class="scalebox" id="envBox" style="display:none"><div class="scaled" id="envPage"></div></div>
       <div class="note" id="envNote" style="display:none">To print the envelope: choose your printer's “#10 Envelope” paper size (or 9.5 × 4.125 in), landscape, margins “None”, scale 100%, then feed the envelope face-up as your printer requires.</div>
@@ -517,6 +518,8 @@ function senderLines(){
   const c=cityLine(s);if(c)out.push(c);
   return out;
 }
+function fmtInline(p){return esc(p).replace(/\*\*([^*\n]+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}
+function noStars(p){return String(p).replace(/\*\*([^*\n]+?)\*\*/g,'$1')}
 function paragraphs(){return S.letter.body.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean)}
 
 function letterHTML(edit){
@@ -548,11 +551,11 @@ function letterHTML(edit){
   if(edit){
     h+='<div data-edit="body"'+CE+'>';
     if(!ps.length)h+='<p class="ph0"></p>'+tbl;
-    else ps.forEach((p,i)=>{h+='<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';if(i===0&&tbl)h+=tbl});
+    else ps.forEach((p,i)=>{h+='<p>'+fmtInline(p)+'</p>';if(i===0&&tbl)h+=tbl});
     h+='</div>';
   } else {
     if(!ps.length)h+='<p style="color:#aaa">Your letter will appear here…</p>';
-    else ps.forEach((p,i)=>{h+='<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';if(i===0&&tbl)h+=tbl});
+    else ps.forEach((p,i)=>{h+='<p>'+fmtInline(p)+'</p>';if(i===0&&tbl)h+=tbl});
     if(ps.length===0&&tbl)h+=tbl;
   }
   h+='<p>'+esc(l.closing)+'</p><div class="sig"><div>'+esc(s.name)+'</div>'+(s.sigTitle?'<div>'+esc(s.sigTitle)+'</div>':'')+'</div>';
@@ -575,11 +578,25 @@ function renderLetter(){
 }
 /* ---- edit directly inside the letter ---- */
 try{document.execCommand('defaultParagraphSeparator',false,'p')}catch(e){}
+function mdText(n){
+  if(n.nodeType===3)return n.textContent;
+  if(n.nodeType!==1)return '';
+  const tg=n.tagName;
+  if(tg==='BR')return '\n';
+  if(tg==='TABLE')return '';
+  let t='';n.childNodes.forEach(c=>{t+=mdText(c)});
+  const fw=(n.style&&n.style.fontWeight)||'';
+  if((tg==='B'||tg==='STRONG'||fw==='bold'||+fw>=600)&&t.trim()){
+    const m=t.match(/^(\s*)([\s\S]*?)(\s*)$/);t=m[1]+'**'+m[2].replace(/\*\*/g,'')+'**'+m[3];
+  }
+  if((tg==='DIV'||tg==='P')&&n.previousSibling)t='\n'+t;
+  return t.replace(/\*\*\*\*/g,'');
+}
 function readBody(host){
   const out=[];
   host.childNodes.forEach(n=>{
     if(n.nodeType===3){const t=n.textContent.replace(/ /g,' ').trim();if(t)out.push(t)}
-    else if(n.nodeType===1&&n.tagName!=='TABLE'){const t=n.innerText.replace(/ /g,' ').replace(/\n+$/,'').trim();if(t)out.push(t)}
+    else if(n.nodeType===1&&n.tagName!=='TABLE'){const t=mdText(n).replace(/ /g,' ').replace(/\n+$/,'').trim();if(t)out.push(t)}
   });
   return out.join('\n\n');
 }
@@ -600,6 +617,27 @@ document.addEventListener('input',e=>{
     document.querySelectorAll('[data-k="letter.'+k+'"]').forEach(x=>x.value=S.letter[k]);
   }
   persist();fitAll();
+});
+function boldIt(){
+  const ta=document.activeElement;
+  if(ta&&ta.matches&&ta.matches('textarea[data-k="letter.body"]')){wrapStars(ta);return}
+  const sel=window.getSelection();
+  const host=sel&&sel.rangeCount&&sel.anchorNode&&(sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement);
+  const body=host&&host.closest&&host.closest('[data-edit="body"]');
+  if(!body||sel.isCollapsed){toast('Select the words you want bold in the letter body first.');return}
+  try{document.execCommand('styleWithCSS',false,false)}catch(e){}
+  document.execCommand('bold');
+}
+function wrapStars(ta){
+  const a=ta.selectionStart,b=ta.selectionEnd;if(a===b){toast('Select the words you want bold first.');return}
+  const v=ta.value,mid=v.slice(a,b);
+  const isB=/^\*\*[\s\S]*\*\*$/.test(mid);
+  const nw=isB?mid.slice(2,-2):'**'+mid.trim()+'**';
+  ta.value=v.slice(0,a)+nw+v.slice(b);ta.selectionStart=a;ta.selectionEnd=a+nw.length;
+  ta.dispatchEvent(new Event('input',{bubbles:true}));
+}
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&!e.altKey&&(e.key==='b'||e.key==='B')&&e.target.matches&&e.target.matches('textarea[data-k="letter.body"]')){e.preventDefault();wrapStars(e.target)}
 });
 document.addEventListener('paste',e=>{
   if(!(e.target.closest&&e.target.closest('[data-edit]')))return;
@@ -653,7 +691,7 @@ function plainText(){
   const re=[];if(l.subject.trim())re.push('Re: '+l.subject.trim());if(l.ref.trim())re.push('Ref. No. '+l.ref.trim());
   if(re.length)o.push(re.join(' — '),'');
   const sal=salutation();if(sal)o.push(sal,'');
-  paragraphs().forEach(p=>o.push(p,''));
+  paragraphs().forEach(p=>o.push(noStars(p),''));
   o.push(l.closing,'','',s.name);if(s.sigTitle)o.push(s.sigTitle);
   if(l.enclosures.trim())o.push('','Enclosures: '+l.enclosures);
   if(l.cc.trim())o.push('cc: '+l.cc);
@@ -773,6 +811,7 @@ function systemPrompt(n){
   +'- Do NOT include the sender or recipient address, date, salutation, closing, or signature. Do not repeat details that will appear in a separate details table; refer to it instead.\n'
   +'- Plain text only. No markdown, bullets, or asterisks. Separate paragraphs in the JSON array.\n'
   +'- Write in first person as the sender.\n'
+  +'- If the current letter body has words wrapped in **double stars** (the sender\'s bold), keep the same words wrapped in **double stars** exactly. Do not add bold of your own.\n'
   +(n>1
    ? '- Give '+n+' clearly different versions (for example different structure or emphasis).\nOutput ONLY valid JSON: {"versions":[{"label":"short label","subject":"suggested subject line or empty string","paragraphs":["..."]}]}'
    : 'Output ONLY valid JSON: {"subject":"suggested subject line or empty string","paragraphs":["..."]}');
