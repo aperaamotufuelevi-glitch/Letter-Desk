@@ -99,6 +99,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 #rtsLabels .lab.xs .rts,#lblPage .lab.xs .rts{font-size:7pt;padding:1px 3px;line-height:1.05;border-width:1px;max-width:1.62in}
 #rtsLabels .lab.xs .rts div+div,#lblPage .lab.xs .rts div+div{margin-top:0}
 #rtsLabels .lab.xs .rts div:last-child,#lblPage .lab.xs .rts div:last-child{font-size:5.5pt}
+#rtsLabels.cut .lab,#lblPage.cut .lab{outline:1px dashed #777!important;outline-offset:-1px}
+#rtsLabels .cuthint,#lblPage .cuthint{position:absolute;left:0;right:0;top:.18in;text-align:center;font:9pt Arial,sans-serif;color:#555}
 #rtsLabels .rts.box,#lblPage .rts.box{border:2px solid #d00000}
 #rtsPage .ghost{position:absolute;color:#c9d1db;font:11px system-ui}
 #envPage .stamp{position:absolute;right:30px;top:24px;width:70px;height:78px;border:1px dashed #c4ccd6;color:#b2bbc6;font:10px system-ui;text-align:center;padding-top:30px}
@@ -240,7 +242,7 @@ function defaultSettings(){return{
   name:'Aperaamo Tufue Levi',street:'1700 17th Ave, Apt # 611',city:'Seattle',state:'WA',zip:'98122',phone:'2533354064',email:'aperaamo.tufue.levi@gmail.com',
   sigTitle:'',closing:'Sincerely,',font:FONTS[0][0],fontSize:'11',letterhead:'rule',showTitleInAddr:true,
   envFont:FONTS[0][0],envSize:'12',retSize:'8',retLine:'1.5',envCaps:false,envReturn:true,
-  autoFull:true,members:[MEMBER0()],rtsL1:'NOT AT THIS ADDRESS',rtsL2:'RETURN TO SENDER',rtsL3:'RECIPIENT DOES NOT LIVE AT THIS ADDRESS.',rtsPos:'lowerleft',rtsSize:'16',rtsBox:true,rtsLabel:'tiny',pageBorder:false,borderColor:'#12304f',borderStyle:'solid',borderWidth:'2',envBorder:false
+  autoFull:true,members:[MEMBER0()],rtsL1:'NOT AT THIS ADDRESS',rtsL2:'RETURN TO SENDER',rtsL3:'RECIPIENT DOES NOT LIVE AT THIS ADDRESS.',rtsPos:'lowerleft',rtsSize:'16',rtsBox:true,rtsLabel:'tiny',rtsCut:true,pageBorder:false,borderColor:'#12304f',borderStyle:'solid',borderWidth:'2',envBorder:false
 }}
 function fixFonts(){
   const ok=FONTS.map(f=>f[0]);
@@ -409,6 +411,7 @@ function buildSettings(){
     <div class="r2"><div><label>Position on the envelope</label>${sel('settings.rtsPos',RTSPOS)}</div><div><label>Text size</label>${sel('settings.rtsSize',RTSSIZES)}</div></div>
     <label class="chk"><input type="checkbox" data-k="settings.rtsBox"> Red box around the words</label>
     <label>Label size (for thick mail)</label>${sel('settings.rtsLabel',RTSLABELS)}
+    <label class="chk"><input type="checkbox" data-k="settings.rtsCut"> Print dashed cut-out lines (for plain paper — turn off when using Avery sticker sheets)</label>
   </div>
 
   <div class="card"><h3>Backup</h3>
@@ -737,7 +740,8 @@ function renderLabels(){
   if(s.rtsLabel==='large'){for(let r=0;r<5;r++)for(let c=0;c<2;c++)h+='<div class="lab" style="top:'+(0.5+r*2)+'in;left:'+(c?4.34375:0.15625)+'in">'+inner+'</div>'}
   else if(s.rtsLabel==='tiny'){for(let r=0;r<20;r++)for(let c=0;c<4;c++)h+='<div class="lab xs" style="top:'+(0.5+r*0.5)+'in;left:'+(0.28125+c*2.0625)+'in">'+inner+'</div>'}
   else{for(let r=0;r<10;r++)for(let c=0;c<3;c++)h+='<div class="lab sm" style="top:'+(0.5+r)+'in;left:'+(0.1875+c*2.75)+'in">'+inner+'</div>'}
-  el.innerHTML=h;const pv=$('lblPage');if(pv)pv.innerHTML=h;
+  if(s.rtsCut)h='<div class="cuthint">✂ Cut along the dashed lines, then tape one label on the front of the wrong mail.</div>'+h;
+  el.innerHTML=h;el.classList.toggle('cut',!!s.rtsCut);const pv=$('lblPage');if(pv){pv.innerHTML=h;pv.classList.toggle('cut',!!s.rtsCut)}
 }
 function render(){renderLetter();renderEnvelope();renderRts();renderLabels();fitAll()}
 window.addEventListener('resize',fitAll);
